@@ -13,4 +13,4 @@
 
 /.idea
 /conf/config.yaml
-/log/*
+/log/*.log
