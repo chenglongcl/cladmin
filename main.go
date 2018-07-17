@@ -11,15 +11,31 @@ import (
 	"net/http"
 	"time"
 	"apiserver/model"
+	v "apiserver/pkg/version"
 	"apiserver/router/middleware"
+	"fmt"
+	"os"
+	"github.com/json-iterator/go"
 )
 
 var (
-	cfg = pflag.StringP("config", "c", "", "apiserver config file path.")
+	cfg     = pflag.StringP("config", "c", "", "apiserver config file path.")
+	version = pflag.BoolP("version", "v", false, "show version info")
 )
 
 func main() {
 	pflag.Parse()
+	if *version {
+		info := v.Get()
+		marshalled, err := jsoniter.MarshalIndent(&info, "", "  ")
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Println(string(marshalled))
+		return
+	}
 	// init config
 	if err := config.Init(*cfg); err != nil {
 		panic(err)
