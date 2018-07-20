@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"apiserver/handler/article"
 	"apiserver/handler/user"
+	"apiserver/handler/upload"
 )
 
 func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
@@ -19,7 +20,6 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 	g.NoRoute(func(c *gin.Context) {
 		c.String(http.StatusNotFound, "The incorrect API route.")
 	})
-
 	// api for authentication functionalities
 	g.POST("/login", user.Login)
 	//user
@@ -39,6 +39,11 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 		articleRouter.POST("", article.Create)
 		articleRouter.GET("/:id", article.Get)
 		articleRouter.GET("", article.List)
+	}
+	//upload
+	uploadRouter := g.Group("/v1/upload")
+	{
+		uploadRouter.POST("/image", upload.Img)
 	}
 	//The health check handlers
 	svcd := g.Group("/sd")

@@ -32,3 +32,5 @@ redis_conf:
   address: 127.0.0.1:6379
   password:
   prefix: "apiserver:"
+upload_path:
+  images: public/upload/images/

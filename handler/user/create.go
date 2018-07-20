@@ -9,7 +9,6 @@ import (
 	"apiserver/pkg/token"
 )
 
-// Create creates a new user account.
 func Create(c *gin.Context) {
 	var r CreateRequest
 	if err := c.Bind(&r); err != nil {

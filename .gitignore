@@ -14,3 +14,5 @@
 /.idea
 /conf/config.yaml
 /log/*.log
+/public/upload/images/*
+!/public/upload/images/index.html
