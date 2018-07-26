@@ -51,5 +51,10 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 		svcd.GET("/health", sd.HealthCheck)
 		//svcd.GET("/demo1", sd.DemoOne)
 	}
+	//public static
+	publicRouter := g.Group("/public")
+	{
+		publicRouter.Static("", "public")
+	}
 	return g
 }
