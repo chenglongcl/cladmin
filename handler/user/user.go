@@ -7,9 +7,10 @@ type CreateRequest struct {
 }
 
 type CreateResponse struct {
-	Username  string `json:"username"`
-	Token     string `json:"token"`
-	ExpiredAt string `json:"expired_at"`
+	Username         string `json:"username"`
+	Token            string `json:"token"`
+	ExpiredAt        string `json:"expired_at"`
+	RefreshExpiredAt string `json:"refresh_expired_at"`
 }
 
 type ListRequest struct {

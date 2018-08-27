@@ -12,7 +12,8 @@ import (
 
 var (
 	// ErrMissingHeader means the `Authorization` header was empty.
-	ErrMissingHeader = errors.New("The length of the `Authorization` header is zero.")
+	ErrMissingHeader  = errors.New("The length of the `Authorization` header is zero.")
+	ErrRefreshExpired = errors.New("Token has refresh expired")
 )
 
 // Context is the context of the JSON web token.
@@ -47,6 +48,10 @@ func Parse(tokenString string, secret string, c *gin.Context) (*Context, error) 
 
 		// Read the token if it's valid.
 	} else if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		refreshExp := int64(claims["rexp"].(float64))
+		if err := time.Now().Unix() < refreshExp; err != true {
+			return ctx, ErrRefreshExpired
+		}
 		ctx.ID = uint64(claims["id"].(float64))
 		ctx.Username = claims["username"].(string)
 		c.Set("JWT_PAYLOAD", claims)
@@ -78,15 +83,19 @@ func ParseRequest(c *gin.Context) (*Context, error) {
 }
 
 // Sign signs the context with the specified secret.
-func Sign(ctx *gin.Context, c Context, secret string) (tokenString string, expiredAt string, err error) {
+func Sign(ctx *gin.Context, c Context, secret string) (tokenString string, expiredAt string,
+	refreshExpiredAt string, err error) {
 	// Load the jwt secret from the Gin config if the secret isn't specified.
 	if secret == "" {
 		secret = viper.GetString("jwt_secret")
 	}
 	expConfig := viper.GetString("jwt_exp")
 	m, _ := time.ParseDuration(expConfig + "s")
+	RefreshExp := viper.GetString("jwt_refresh_exp")
+	mt, _ := time.ParseDuration(RefreshExp + "s")
 	now := time.Now()
 	tokenExp := now.Add(m).Unix()
+	tokenRefreshExp := now.Add(mt).Unix()
 	// The token content.
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":       c.ID,
@@ -95,10 +104,12 @@ func Sign(ctx *gin.Context, c Context, secret string) (tokenString string, expir
 		"nbf":      now.Unix(),
 		"sub":      c.ID,
 		"exp":      tokenExp,
+		"rexp":     tokenRefreshExp,
 	})
 	// Sign the token with the specified secret.
 	tokenString, err = token.SignedString([]byte(secret))
 	expiredAt = time.Unix(tokenExp, 0).Format("2006-01-02 15:04:05")
+	refreshExpiredAt = time.Unix(tokenRefreshExp, 0).Format("2006-01-02 15:04:05")
 	return
 }
 

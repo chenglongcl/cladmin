@@ -26,3 +26,12 @@ func SendResponse(c *gin.Context, err error, data interface{}) {
 		Data:    data,
 	})
 }
+
+func SendResponseUnauthorized(c *gin.Context, err error, data interface{}) {
+	code, message := errno.DecodeErr(err)
+	c.JSON(http.StatusUnauthorized, Response{
+		Code:    code,
+		Message: message,
+		Data:    data,
+	})
+}

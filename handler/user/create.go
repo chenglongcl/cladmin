@@ -34,12 +34,13 @@ func Create(c *gin.Context) {
 		SendResponse(c, errno.ErrDatabase, nil)
 		return
 	}
-	t, e, _ := token.Sign(c, token.Context{ID: u.Id, Username: u.Username}, "")
+	t, e, re, _ := token.Sign(c, token.Context{ID: u.Id, Username: u.Username}, "")
 
 	rep := CreateResponse{
-		Username:  r.Username,
-		Token:     t,
-		ExpiredAt: e,
+		Username:         r.Username,
+		Token:            t,
+		ExpiredAt:        e,
+		RefreshExpiredAt: re,
 	}
 	SendResponse(c, nil, rep)
 }

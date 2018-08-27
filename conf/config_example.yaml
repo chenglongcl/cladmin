@@ -4,7 +4,8 @@ name: apiserver              # API Server的名字
 url: http://127.0.0.1:8080   # pingServer函数请求的API服务器的ip:port
 max_ping_count: 10           # pingServer函数try的次数
 jwt_secret: 4qRnHyI4LGzYrpXdAHBfU0151Dqc8s56
-jwt_exp: 604800 #过期时间单位秒
+jwt_exp: 7200 #过期时间单位秒
+jwt_refresh_exp: 1296000 #可刷新令牌时间单位秒
 log:
   writers: file,stdout
   logger_level: DEBUG
