@@ -8,12 +8,15 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"apiserver/model"
+	"github.com/gomodule/redigo/redis"
 )
 
 var (
 	// ErrMissingHeader means the `Authorization` header was empty.
 	ErrMissingHeader  = errors.New("The length of the `Authorization` header is zero.")
 	ErrRefreshExpired = errors.New("Token has refresh expired")
+	ErrInBlackList    = errors.New("Token is in BlackList")
 )
 
 // Context is the context of the JSON web token.
@@ -49,8 +52,15 @@ func Parse(tokenString string, secret string, c *gin.Context) (*Context, error) 
 		// Read the token if it's valid.
 	} else if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		refreshExp := int64(claims["rexp"].(float64))
+		//Check refreshExpire
 		if err := time.Now().Unix() < refreshExp; err != true {
 			return ctx, ErrRefreshExpired
+		}
+		//Check TokenBlackList
+		if exists, _ := redis.Bool(
+			model.RD.Self.Do("HGET", model.RD.Key+"TokenBlackList", tokenString));
+			exists == true {
+			return ctx, ErrInBlackList
 		}
 		ctx.ID = uint64(claims["id"].(float64))
 		ctx.Username = claims["username"].(string)
@@ -135,6 +145,8 @@ func ParseRefreshRequest(c *gin.Context) (ctx *Context, err error, tokenString s
 	if err != nil {
 		return
 	}
+	//Add TokenBlackList
+	model.RD.Self.Do("HSET", model.RD.Key+"TokenBlackList", t, 1)
 	//Refresh Token
 	tokenString, expiredAt, refreshExpiredAt, err = Sign(c, Context{
 		ID:       ctx.ID,
