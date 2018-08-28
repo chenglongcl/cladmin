@@ -83,7 +83,7 @@ func ParseRequest(c *gin.Context) (*Context, error) {
 }
 
 // Sign signs the context with the specified secret.
-func Sign(ctx *gin.Context, c Context, secret string) (tokenString string, expiredAt string,
+func Sign(c *gin.Context, ctx Context, secret string) (tokenString string, expiredAt string,
 	refreshExpiredAt string, err error) {
 	// Load the jwt secret from the Gin config if the secret isn't specified.
 	if secret == "" {
@@ -98,11 +98,11 @@ func Sign(ctx *gin.Context, c Context, secret string) (tokenString string, expir
 	tokenRefreshExp := now.Add(mt).Unix()
 	// The token content.
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":       c.ID,
-		"username": c.Username,
+		"id":       ctx.ID,
+		"username": ctx.Username,
 		"iat":      now.Unix(),
 		"nbf":      now.Unix(),
-		"sub":      c.ID,
+		"sub":      ctx.ID,
 		"exp":      tokenExp,
 		"rexp":     tokenRefreshExp,
 	})
@@ -110,6 +110,36 @@ func Sign(ctx *gin.Context, c Context, secret string) (tokenString string, expir
 	tokenString, err = token.SignedString([]byte(secret))
 	expiredAt = time.Unix(tokenExp, 0).Format("2006-01-02 15:04:05")
 	refreshExpiredAt = time.Unix(tokenRefreshExp, 0).Format("2006-01-02 15:04:05")
+	return
+}
+
+// ParseRequest gets the token from the header and
+// pass it to the Parse function to parsesRefresh the token.
+func ParseRefreshRequest(c *gin.Context) (ctx *Context, err error, tokenString string, expiredAt string,
+	refreshExpiredAt string) {
+	header := c.Request.Header.Get("Authorization")
+
+	// Load the jwt secret from config
+	secret := viper.GetString("jwt_secret")
+
+	if len(header) == 0 {
+		ctx = &Context{}
+		err = ErrMissingHeader
+		return
+	}
+
+	var t string
+	// Parse the header to get the token part.
+	fmt.Sscanf(header, "Bearer %s", &t)
+	ctx, err = Parse(t, secret, c)
+	if err != nil {
+		return
+	}
+	//Refresh Token
+	tokenString, expiredAt, refreshExpiredAt, err = Sign(c, Context{
+		ID:       ctx.ID,
+		Username: ctx.Username,
+	}, secret)
 	return
 }
 
