@@ -17,7 +17,9 @@ var (
 	ErrPasswordIncorrect = &Errno{Code: 20104, Message: "The password was incorrect."}
 
 	//upload errors
-	ErrUploadFile = &Errno{Code: 20201, Message: "Error uploadFile"}
-	ErrUploadMime = &Errno{Code: 20202, Message: "Error uploadMime"}
-	ErrUploadFail = &Errno{Code: 20203, Message: "Upload fail"}
+	ErrUploadFile               = &Errno{Code: 20201, Message: "Error uploadFile"}
+	ErrUploadMime               = &Errno{Code: 20202, Message: "Error uploadMime"}
+	ErrUploadFail               = &Errno{Code: 20203, Message: "Upload fail"}
+	ErrOssGenerateSignatureFail = &Errno{Code: 20204, Message: "AliyunOss fail",
+	}
 )

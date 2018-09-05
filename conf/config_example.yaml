@@ -35,3 +35,7 @@ redis_conf:
   prefix: "apiserver:"
 upload_path:
   images: public/upload/images/
+aliyun_oss: #aliyunOss
+  access_key_id:
+  access_key_secret:
+  host:

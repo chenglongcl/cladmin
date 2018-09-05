@@ -23,6 +23,8 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 	// api for authentication functionalities
 	g.POST("/login", user.Login)
 	g.GET("/refresh", user.Refresh)
+	//api get AliyunOss signature
+	g.GET("/oss/generatesignature", sd.GenerateSignature)
 	//user
 	userRouter := g.Group("/v1/user")
 	{
