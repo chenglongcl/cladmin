@@ -5,6 +5,7 @@ import "apiserver/pkg/constvar"
 type PageSetting struct {
 	Offset uint64 `json:"offset"`
 	Limit  uint64 `json:"limit"`
+	Page   uint64 `json:"page"`
 }
 type Page struct {
 	CurrentPage uint64      `json:"current_page"`
@@ -20,6 +21,10 @@ func (s *PageSetting) Setting(page uint64) {
 	if s.Limit == 0 {
 		s.Limit = constvar.DefaultLimit
 	}
+	if page == 0 {
+		page = 1
+	}
+	s.Page = page
 	s.Offset = (page - 1) * s.Limit
 }
 

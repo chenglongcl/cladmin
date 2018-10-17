@@ -14,6 +14,6 @@ type CreateResponse struct {
 }
 
 type ListRequest struct {
-	UserName string `json:"username"`
-	Page     uint64 `json:"page"`
+	UserName string `form:"username"`
+	Page     uint64 `form:"page"`
 }

@@ -21,8 +21,8 @@ type CreateResponse struct {
 }
 
 type ListRequest struct {
-	CateId uint64 `json:"cate_id"`
-	Page   uint64 `json:"page"`
+	CateId uint64 `form:"cate_id"`
+	Page   uint64 `form:"page"`
 }
 
 type Author struct {

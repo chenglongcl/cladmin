@@ -22,5 +22,5 @@ func List(c *gin.Context) {
 	if err != nil {
 		SendResponse(c, err, nil)
 	}
-	SendResponse(c, nil, util.PageUtil(count, r.Page, ps.Limit, infos))
+	SendResponse(c, nil, util.PageUtil(count, ps.Page, ps.Limit, infos))
 }
