@@ -2,20 +2,20 @@ package main
 
 import (
 	"apiserver/config"
-	"apiserver/router"
-	"errors"
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
-	"github.com/lexkong/log"
-	"net/http"
-	"time"
 	"apiserver/model"
 	v "apiserver/pkg/version"
+	"apiserver/router"
 	"apiserver/router/middleware"
+	"errors"
 	"fmt"
-	"os"
+	"github.com/gin-gonic/gin"
 	"github.com/json-iterator/go"
+	"github.com/lexkong/log"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+	"net/http"
+	"os"
+	"time"
 )
 
 var (
@@ -45,7 +45,6 @@ func main() {
 	defer model.DB.Close()
 	// init redis
 	model.RD.Init()
-	defer model.RD.Close()
 	//Set gin mode
 	gin.SetMode(viper.GetString("runmode"))
 	//Create the gin engine

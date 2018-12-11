@@ -6,29 +6,27 @@ import (
 )
 
 type Redis struct {
-	Self redis.Conn
-	Key  string
+	Client *redis.Pool
+	Key    string
 }
 
 var RD *Redis
 
 func (rd *Redis) Init() {
-	pool := &redis.Pool{
-		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial(viper.GetString("redis_conf.network"),
-				viper.GetString("redis_conf.address"),
-				redis.DialPassword(viper.GetString("redis_conf.password")))
-			if err != nil {
-				return nil, err
-			}
-			return c, nil
-		},
-	}
 	RD = &Redis{
-		Self: pool.Get(),
-		Key:  viper.GetString("redis_conf.prefix"),
+		Client: &redis.Pool{
+			MaxIdle:   16,
+			MaxActive: 500,
+			Dial: func() (redis.Conn, error) {
+				c, err := redis.Dial(viper.GetString("redis_conf.network"),
+					viper.GetString("redis_conf.address"),
+					redis.DialPassword(viper.GetString("redis_conf.password")))
+				if err != nil {
+					return nil, err
+				}
+				return c, nil
+			},
+		},
+		Key: viper.GetString("redis_conf.prefix"),
 	}
-}
-func (rd *Redis) Close() {
-	RD.Self.Close()
 }

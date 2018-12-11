@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"apiserver/model"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
-	"apiserver/model"
 	"github.com/gomodule/redigo/redis"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -40,6 +40,8 @@ func secretFunc(secret string) jwt.Keyfunc {
 // Parse validates the token with the specified secret,
 // and returns the context if the token was valid.
 func Parse(tokenString string, secret string, c *gin.Context) (*Context, error) {
+	redisClient := model.RD.Client.Get()
+	defer redisClient.Close()
 	ctx := &Context{}
 
 	// Parse the token.
@@ -58,7 +60,7 @@ func Parse(tokenString string, secret string, c *gin.Context) (*Context, error) 
 		}
 		//Check TokenBlackList
 		if exists, _ := redis.Bool(
-			model.RD.Self.Do("HGET", model.RD.Key+"TokenBlackList", tokenString));
+			redisClient.Do("HGET", model.RD.Key+"TokenBlackList", tokenString));
 			exists == true {
 			return ctx, ErrInBlackList
 		}
@@ -127,6 +129,8 @@ func Sign(c *gin.Context, ctx Context, secret string) (tokenString string, expir
 // pass it to the Parse function to parsesRefresh the token.
 func ParseRefreshRequest(c *gin.Context) (ctx *Context, err error, tokenString string, expiredAt string,
 	refreshExpiredAt string) {
+	redisClient := model.RD.Client.Get()
+	defer redisClient.Close()
 	header := c.Request.Header.Get("Authorization")
 
 	// Load the jwt secret from config
@@ -146,7 +150,7 @@ func ParseRefreshRequest(c *gin.Context) (ctx *Context, err error, tokenString s
 		return
 	}
 	//Add TokenBlackList
-	model.RD.Self.Do("HSET", model.RD.Key+"TokenBlackList", t, 1)
+	redisClient.Do("HSET", model.RD.Key+"TokenBlackList", t, 1)
 	//Refresh Token
 	tokenString, expiredAt, refreshExpiredAt, err = Sign(c, Context{
 		ID:       ctx.ID,
