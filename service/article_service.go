@@ -1,10 +1,10 @@
 package service
 
 import (
-	"apiserver/util"
 	"apiserver/model"
-	"sync"
+	"apiserver/util"
 	"github.com/json-iterator/go"
+	"sync"
 )
 
 func ListArticle(cateId uint64, ps util.PageSetting) ([]*model.ArticleInfo, uint64, error) {
@@ -45,8 +45,9 @@ func ListArticle(cateId uint64, ps util.PageSetting) ([]*model.ArticleInfo, uint
 
 	go func() {
 		wg.Wait()
-		close(finished)
+		close(finished) //broadcast notification select
 	}()
+	//select阻塞主线程
 	select {
 	case <-finished:
 	}
