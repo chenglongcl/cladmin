@@ -1,7 +1,7 @@
 package sd
 
 import (
-	"apiserver/service"
+	"cladmin/service"
 	"github.com/gin-gonic/gin"
 )
 

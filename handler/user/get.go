@@ -1,22 +1,24 @@
 package user
 
 import (
+	. "cladmin/handler"
+	"cladmin/pkg/errno"
+	"cladmin/service"
 	"github.com/gin-gonic/gin"
-	"apiserver/model"
-	. "apiserver/handler"
-	"apiserver/pkg/errno"
 )
 
 func Get(c *gin.Context) {
-	userId, _ := c.Get("userId")
-	fields := []string{
-		"id",
-		"username",
-		"mobile",
+	var r GetRequest
+	if err := c.BindQuery(&r); err != nil {
+		SendResponse(c, errno.ErrBind, nil)
+		return
 	}
-	user, err := model.GetUser(userId.(uint64), fields)
-	if err != nil {
-		SendResponse(c, errno.ErrUserNotFound, nil)
+	userService := service.User{
+		Id: r.Id,
+	}
+	user, errNo := userService.Get()
+	if errNo != nil {
+		SendResponse(c, errNo, nil)
 		return
 	}
 	SendResponse(c, nil, user)

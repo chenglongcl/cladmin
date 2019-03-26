@@ -1,45 +1,38 @@
 package user
 
 import (
-	. "apiserver/handler"
-	"apiserver/model"
-	"apiserver/pkg/errno"
-
+	. "cladmin/handler"
+	"cladmin/pkg/errno"
+	"cladmin/router/middleware/inject"
+	"cladmin/service"
+	"cladmin/util"
 	"github.com/gin-gonic/gin"
 )
 
 // Update update a exist user account info.
 func Update(c *gin.Context) {
-
-	userId, _ := c.Get("userId")
-
-	// Binding the user data.
-	var u model.UserModel
-	if err := c.Bind(&u); err != nil {
+	var r UpdateRequest
+	if err := c.Bind(&r); err != nil {
 		SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-
-	// We update the record based on the user id.
-	u.Id = userId.(uint64)
-
-	// Validate the data.
-	if err := u.Validate(); err != nil {
+	if err := util.Validate(&r); err != nil {
 		SendResponse(c, errno.ErrValidation, nil)
 		return
 	}
-
-	// Encrypt the user password.
-	if err := u.Encrypt(); err != nil {
-		SendResponse(c, errno.ErrEncrypt, nil)
+	userService := service.User{
+		Id:       r.Id,
+		Password: r.Password,
+		Mobile:   r.Mobile,
+		Email:    r.Email,
+		Status:   r.Status,
+		RoleId:   r.RoleId,
+	}
+	errNo := userService.Edit()
+	if errNo != nil {
+		SendResponse(c, errNo, nil)
 		return
 	}
-
-	// Save changed fields.
-	if err := u.UpdateUser(); err != nil {
-		SendResponse(c, errno.ErrDatabase, nil)
-		return
-	}
-
+	inject.Obj.Common.UserAPI.LoadPolicy(userService.Id)
 	SendResponse(c, nil, nil)
 }

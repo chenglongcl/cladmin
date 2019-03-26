@@ -3,6 +3,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "XRH9UcCo34OZ0TARtNCsGJq0CM8=",
+			"path": "github.com/Knetic/govaluate",
+			"revision": "9aa49832a739dcd78a5542ff189fb82c3e423116",
+			"revisionTime": "2017-10-22T00:36:10Z"
+		},
+		{
 			"checksumSHA1": "nJrp/CKnvpO+vzTfOeR8qmzRZ4c=",
 			"path": "github.com/PuerkitoBio/purell",
 			"revision": "975f53781597ed779763b7b65566e74c4004d8de",
@@ -15,9 +21,63 @@
 			"revisionTime": "2017-08-10T14:37:23Z"
 		},
 		{
+			"checksumSHA1": "6TOKnsIGoe94Fysbixt41d6YF5c=",
+			"path": "github.com/casbin/casbin",
+			"revision": "a5a1667e25abdbc5a4414ea9b6b889764174b7ec",
+			"revisionTime": "2019-02-12T13:48:39Z"
+		},
+		{
+			"checksumSHA1": "dOAqYmfju82qrlRUB2UJYqWM+F0=",
+			"path": "github.com/casbin/casbin/config",
+			"revision": "a5a1667e25abdbc5a4414ea9b6b889764174b7ec",
+			"revisionTime": "2019-02-12T13:48:39Z"
+		},
+		{
+			"checksumSHA1": "ZiYfKeZDLHFodcZ5h8mvWLi2jbw=",
+			"path": "github.com/casbin/casbin/effect",
+			"revision": "a5a1667e25abdbc5a4414ea9b6b889764174b7ec",
+			"revisionTime": "2019-02-12T13:48:39Z"
+		},
+		{
+			"checksumSHA1": "SMYDqpPv0trYaNkuilcq0bPvEdk=",
+			"path": "github.com/casbin/casbin/log",
+			"revision": "a5a1667e25abdbc5a4414ea9b6b889764174b7ec",
+			"revisionTime": "2019-02-12T13:48:39Z"
+		},
+		{
+			"checksumSHA1": "x6WGFX+QhUPsYA15jbwrSoRDddQ=",
+			"path": "github.com/casbin/casbin/model",
+			"revision": "a5a1667e25abdbc5a4414ea9b6b889764174b7ec",
+			"revisionTime": "2019-02-12T13:48:39Z"
+		},
+		{
+			"checksumSHA1": "HPYdTQ8rMNMZGD+J61hKD0qtycQ=",
+			"path": "github.com/casbin/casbin/rbac",
+			"revision": "a5a1667e25abdbc5a4414ea9b6b889764174b7ec",
+			"revisionTime": "2019-02-12T13:48:39Z"
+		},
+		{
+			"checksumSHA1": "VH2ZNNaIu1s4OiWSC9Vl2mlAz6M=",
+			"path": "github.com/casbin/casbin/rbac/default-role-manager",
+			"revision": "a5a1667e25abdbc5a4414ea9b6b889764174b7ec",
+			"revisionTime": "2019-02-12T13:48:39Z"
+		},
+		{
 			"checksumSHA1": "+TKtBzv23ywvmmqRiGEjUba4YmI=",
 			"path": "github.com/dgrijalva/jwt-go",
 			"revision": ""
+		},
+		{
+			"checksumSHA1": "fvTWz/7ba+qJekCPe6a8sRo6Iik=",
+			"path": "github.com/facebookgo/inject",
+			"revision": "f23751cae28bef101a38b79266785d3b574cf7e8",
+			"revisionTime": "2018-07-06T03:55:15Z"
+		},
+		{
+			"checksumSHA1": "3QW89DuQh3wqK3GUfaJ4Up2oo5o=",
+			"path": "github.com/facebookgo/structtag",
+			"revision": "217e25fb96916cc60332e399c9aa63f5c422ceed",
+			"revisionTime": "2015-02-14T07:43:06Z"
 		},
 		{
 			"checksumSHA1": "x2Km0Qy3WgJJnV19Zv25VwTJcBM=",
@@ -466,5 +526,5 @@
 			"revisionTime": "2017-08-12T16:00:11Z"
 		}
 	],
-	"rootPath": "apiserver"
+	"rootPath": "cladmin"
 }

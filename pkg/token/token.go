@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"apiserver/model"
+	"cladmin/model"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/gomodule/redigo/redis"
@@ -68,6 +68,7 @@ func Parse(tokenString string, secret string, c *gin.Context) (*Context, error) 
 		ctx.Username = claims["username"].(string)
 		c.Set("JWT_PAYLOAD", claims)
 		c.Set("userId", ctx.ID)
+		c.Set("username", ctx.Username)
 		return ctx, nil
 
 		// Other errors.

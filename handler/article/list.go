@@ -1,12 +1,11 @@
 package article
 
 import (
+	. "cladmin/handler"
+	"cladmin/pkg/errno"
+	"cladmin/service"
+	"cladmin/util"
 	"github.com/gin-gonic/gin"
-	. "apiserver/handler"
-	"apiserver/pkg/errno"
-	"apiserver/util"
-	"apiserver/service"
-	"github.com/lexkong/log"
 )
 
 func List(c *gin.Context) {
@@ -18,8 +17,7 @@ func List(c *gin.Context) {
 		SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	log.Infof("%+v\n", r)
-	ps.Setting(r.Page)
+	ps.Setting(r.Page, r.Limit)
 	infos, count, err := service.ListArticle(r.CateId, ps)
 	if err != nil {
 		SendResponse(c, err, nil)

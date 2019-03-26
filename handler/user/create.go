@@ -1,12 +1,13 @@
 package user
 
 import (
-	"apiserver/pkg/errno"
-
+	. "cladmin/handler"
+	"cladmin/pkg/errno"
+	"cladmin/pkg/token"
+	"cladmin/router/middleware/inject"
+	"cladmin/service"
+	"cladmin/util"
 	"github.com/gin-gonic/gin"
-	. "apiserver/handler"
-	"apiserver/model"
-	"apiserver/pkg/token"
 )
 
 func Create(c *gin.Context) {
@@ -15,27 +16,26 @@ func Create(c *gin.Context) {
 		SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	u := model.UserModel{
-		Username: r.Username,
-		Password: r.Password,
-		Mobile:   r.Mobile,
-	}
-	//Validate the data
-	if err := u.Validate(); err != nil {
+	if err := util.Validate(&r); err != nil {
 		SendResponse(c, errno.ErrValidation, nil)
 		return
 	}
-	//Encrypt password
-	if err := u.Encrypt(); err != nil {
-		SendResponse(c, errno.ErrEncrypt, nil)
+	userService := service.User{
+		Username:     r.Username,
+		Password:     r.Password,
+		Mobile:       r.Mobile,
+		Email:        r.Email,
+		Status:       r.Status,
+		CreateUserId: r.CreateUserId,
+		RoleId:       r.RoleId,
+	}
+	id, errNo := userService.Add()
+	if errNo != nil {
+		SendResponse(c, errNo, nil)
 		return
 	}
-	if err := u.CreateUser(); err != nil {
-		SendResponse(c, errno.ErrDatabase, nil)
-		return
-	}
-	t, e, re, _ := token.Sign(c, token.Context{ID: u.Id, Username: u.Username}, "")
-
+	t, e, re, _ := token.Sign(c, token.Context{ID: id, Username: userService.Username}, "")
+	inject.Obj.Common.UserAPI.LoadPolicy(id)
 	rep := CreateResponse{
 		Username:         r.Username,
 		Token:            t,

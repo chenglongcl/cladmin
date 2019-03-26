@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SERVER="apiserver"
+SERVER="cladmin"
 BASE_DIR=$PWD
 INTERVAL=2
 

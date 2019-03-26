@@ -1,11 +1,11 @@
 package user
 
 import (
+	. "cladmin/handler"
+	"cladmin/pkg/errno"
+	"cladmin/service"
+	"cladmin/util"
 	"github.com/gin-gonic/gin"
-	"apiserver/util"
-	. "apiserver/handler"
-	"apiserver/service"
-	"apiserver/pkg/errno"
 )
 
 func List(c *gin.Context) {
@@ -17,10 +17,13 @@ func List(c *gin.Context) {
 		SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	ps.Setting(r.Page)
-	infos, count, err := service.ListUser(r.UserName, ps)
+	ps.Setting(r.Page, r.Limit)
+	userService := service.User{
+		Username: r.UserName,
+	}
+	info, count, err := userService.GetList(ps)
 	if err != nil {
 		SendResponse(c, err, nil)
 	}
-	SendResponse(c, nil, util.PageUtil(count, ps.Page, ps.Limit, infos))
+	SendResponse(c, nil, util.PageUtil(count, ps.Page, ps.Limit, info))
 }

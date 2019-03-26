@@ -1,16 +1,16 @@
 package user
 
 import (
+	. "cladmin/handler"
+	"cladmin/model"
+	"cladmin/pkg/auth"
+	"cladmin/pkg/errno"
+	"cladmin/pkg/token"
 	"github.com/gin-gonic/gin"
-	"apiserver/model"
-	. "apiserver/handler"
-	"apiserver/pkg/errno"
-	"apiserver/pkg/auth"
-	"apiserver/pkg/token"
 )
 
 func Login(c *gin.Context) {
-	var u model.UserModel
+	var u model.User
 	if err := c.Bind(&u); err != nil {
 		SendResponse(c, errno.ErrBind, nil)
 		return

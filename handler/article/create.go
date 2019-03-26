@@ -2,9 +2,9 @@ package article
 
 import (
 	"github.com/gin-gonic/gin"
-	. "apiserver/handler"
-	"apiserver/pkg/errno"
-	"apiserver/model"
+	. "cladmin/handler"
+	"cladmin/pkg/errno"
+	"cladmin/model"
 	"github.com/json-iterator/go"
 )
 

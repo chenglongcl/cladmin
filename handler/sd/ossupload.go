@@ -9,8 +9,8 @@ import (
 	"crypto/hmac"
 	"hash"
 	"crypto/sha1"
-	"apiserver/pkg/errno"
-	. "apiserver/handler"
+	"cladmin/pkg/errno"
+	. "cladmin/handler"
 	"net/http"
 )
 

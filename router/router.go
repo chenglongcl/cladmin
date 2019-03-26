@@ -1,13 +1,15 @@
 package router
 
 import (
-	"apiserver/handler/sd"
-	"apiserver/router/middleware"
+	"cladmin/handler/menu"
+	"cladmin/handler/role"
+	"cladmin/handler/sd"
+	"cladmin/handler/upload"
+	"cladmin/handler/user"
+	"cladmin/router/middleware"
+	"cladmin/router/middleware/permission"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"apiserver/handler/article"
-	"apiserver/handler/user"
-	"apiserver/handler/upload"
 )
 
 func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
@@ -25,8 +27,23 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 	g.GET("/refresh", user.Refresh)
 	//api get AliyunOss signature
 	g.GET("/oss/generatesignature", sd.GenerateSignature)
+
+	apiV1 := g.Group("/v1")
+	apiV1.Use(middleware.AuthMiddleware())
+	apiV1.Use(permission.CasbinMiddleware())
+	{
+		apiV1.POST("/users/create", user.Create)
+		apiV1.PUT("/users/edit", user.Update)
+		apiV1.GET("/users/get", user.Get)
+		apiV1.GET("/users/list", user.List)
+		apiV1.DELETE("/users/del", user.Delete)
+
+		apiV1.POST("/menus", menu.Create)
+
+		apiV1.POST("/roles", role.Create)
+	}
 	//user
-	userRouter := g.Group("/v1/user")
+	/*userRouter := g.Group("/v1/user")
 	{
 		// Need auth
 		userRouter.GET("", middleware.AuthMiddleware(), user.Get)
@@ -35,14 +52,14 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 		userRouter.POST("", user.Create)
 		userRouter.DELETE("/:id", user.Delete)
 		userRouter.GET("/index", user.List)
-	}
+	}*/
 	//article
-	articleRouter := g.Group("/v1/article")
+	/*articleRouter := g.Group("/v1/article")
 	{
 		articleRouter.POST("", article.Create)
 		articleRouter.GET("/:id", article.Get)
 		articleRouter.GET("", article.List)
-	}
+	}*/
 	//upload
 	uploadRouter := g.Group("/v1/upload")
 	{

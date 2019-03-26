@@ -1,14 +1,14 @@
 package service
 
 import (
-	"apiserver/model"
+	"cladmin/model"
 	"github.com/json-iterator/go"
 )
 
 func DemoOne() {
 	redisClient := model.RD.Client.Get()
 	defer redisClient.Close()
-	user, err := model.GetUser(1, []string{"id", "username", "mobile"})
+	user, err := model.GetUser(1)
 	if err != nil {
 		panic(err)
 	}

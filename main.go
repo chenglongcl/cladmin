@@ -1,11 +1,12 @@
 package main
 
 import (
-	"apiserver/config"
-	"apiserver/model"
-	v "apiserver/pkg/version"
-	"apiserver/router"
-	"apiserver/router/middleware"
+	"cladmin/config"
+	"cladmin/model"
+	v "cladmin/pkg/version"
+	"cladmin/router"
+	"cladmin/router/middleware"
+	"cladmin/router/middleware/inject"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -19,7 +20,7 @@ import (
 )
 
 var (
-	cfg     = pflag.StringP("config", "c", "", "apiserver config file path.")
+	cfg     = pflag.StringP("config", "c", "", "cladmin config file path.")
 	version = pflag.BoolP("version", "v", false, "show version info")
 )
 
@@ -45,6 +46,12 @@ func main() {
 	defer model.DB.Close()
 	// init redis
 	model.RD.Init()
+	//init Casbin
+	inject.Init()
+	err := inject.LoadCasbinPolicyData()
+	if err != nil {
+		log.Fatal("Failure to load Casbin policy data:", err)
+	}
 	//Set gin mode
 	gin.SetMode(viper.GetString("runmode"))
 	//Create the gin engine

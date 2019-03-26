@@ -1,8 +1,8 @@
 package service
 
 import (
-	"apiserver/model"
-	"apiserver/util"
+	"cladmin/model"
+	"cladmin/util"
 	"github.com/json-iterator/go"
 	"sync"
 )

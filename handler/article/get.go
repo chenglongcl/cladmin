@@ -2,10 +2,10 @@ package article
 
 import (
 	"github.com/gin-gonic/gin"
-	"apiserver/model"
+	"cladmin/model"
 	"strconv"
-	"apiserver/pkg/errno"
-	. "apiserver/handler"
+	"cladmin/pkg/errno"
+	. "cladmin/handler"
 	"github.com/json-iterator/go"
 )
 

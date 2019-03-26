@@ -1,6 +1,6 @@
 package util
 
-import "apiserver/pkg/constvar"
+import "cladmin/pkg/constvar"
 
 type PageSetting struct {
 	Offset uint64 `json:"offset"`
@@ -17,13 +17,14 @@ type Page struct {
 	List        interface{} `json:"list"`
 }
 
-func (s *PageSetting) Setting(page uint64) {
-	if s.Limit == 0 {
-		s.Limit = constvar.DefaultLimit
+func (s *PageSetting) Setting(page, limit uint64) {
+	if limit == 0 {
+		limit = constvar.DefaultLimit
 	}
 	if page == 0 {
 		page = 1
 	}
+	s.Limit = limit
 	s.Page = page
 	s.Offset = (page - 1) * s.Limit
 }

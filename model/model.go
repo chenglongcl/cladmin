@@ -1,8 +1,8 @@
 package model
 
 import (
-	"time"
 	"sync"
+	"time"
 )
 
 type BaseModel struct {
@@ -12,23 +12,9 @@ type BaseModel struct {
 	DeletedAt *time.Time `gorm:"column:deleted_at" sql:"index" json:"-"`
 }
 type Token struct {
-	Token string `json:"token"`
+	Token     string `json:"token"`
 	ExpiredAt string `json:"expired_at"`
 }
-type UserInfo struct {
-	Id        uint64 `json:"id"`
-	Username  string `json:"username"`
-	Mobile    string `json:"mobile"`
-	SayHello  string `json:"say_hello"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
-}
-
-type UserList struct {
-	Lock  *sync.Mutex
-	IdMap map[uint64]*UserInfo
-}
-
 type ArticleInfo struct {
 	Id        uint64   `json:"id"`
 	Uid       uint64   `json:"uid"`
@@ -36,8 +22,8 @@ type ArticleInfo struct {
 	Title     string   `json:"title"`
 	Images    []string `json:"images"`
 	Author    Author
-	CreatedAt string   `json:"created_at"`
-	UpdatedAt string   `json:"updated_at"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
 }
 type Author struct {
 	Id       uint64 `json:"id"`

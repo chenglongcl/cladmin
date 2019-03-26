@@ -23,6 +23,7 @@ type CreateResponse struct {
 type ListRequest struct {
 	CateId uint64 `form:"cate_id"`
 	Page   uint64 `form:"page"`
+	Limit  uint64 `form:"limit"`
 }
 
 type Author struct {
