@@ -1,9 +1,9 @@
-package user
+package role
 
 import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
-	"cladmin/service/user_service"
+	"cladmin/service/role_service"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
 )
@@ -18,12 +18,13 @@ func List(c *gin.Context) {
 		return
 	}
 	ps.Setting(r.Page, r.Limit)
-	userService := user_service.User{
-		Username: r.UserName,
+	roleService := role_service.Role{
+		RoleName: r.RoleName,
 	}
-	info, count, err := userService.GetList(ps)
-	if err != nil {
-		SendResponse(c, err, nil)
+	roles, count, errNo := roleService.GetList(ps)
+	if errNo != nil {
+		SendResponse(c, errNo, nil)
+		return
 	}
-	SendResponse(c, nil, util.PageUtil(count, ps.Page, ps.Limit, info))
+	SendResponse(c, nil, util.PageUtil(count, ps.Page, ps.Limit, roles))
 }

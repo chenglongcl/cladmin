@@ -89,7 +89,7 @@ func EditUser(data map[string]interface{}) error {
 		user User
 	)
 	DB.Self.Where("id in (?)", data["role_id"].([]int64)).Find(&role)
-	if err := DB.Self.Where("id = ?", data["id"].(uint64)).Find(&user).Error; err != nil {
+	if err := DB.Self.Where("id = ?", data["id"].(uint64)).First(&user).Error; err != nil {
 		return err
 	}
 	DB.Self.Model(&user).Association("Role").Replace(role)
@@ -111,7 +111,7 @@ func GetUser(id uint64) (*User, error) {
 	return &user, nil
 }
 
-func GetList(w map[string]interface{}, offset, limit uint64) ([]*User, uint64, error) {
+func GetUserList(w map[string]interface{}, offset, limit uint64) ([]*User, uint64, error) {
 	users := make([]*User, 0)
 	var count uint64
 	where, values, _ := WhereBuild(w)
@@ -134,9 +134,9 @@ func GetUsersAll() ([]*User, error) {
 	return user, nil
 }
 
-func Delete(id uint64) error {
+func DeleteUser(id uint64) error {
 	var user User
-	DB.Self.Where("id = ?", id).Preload("Role").Find(&user)
+	DB.Self.Where("id = ?", id).Preload("Role").First(&user)
 	DB.Self.Model(&user).Association("Role").Delete(user.Role)
 	if err := DB.Self.Unscoped().Where("id = ?", id).Delete(&user).Error; err != nil {
 		return err

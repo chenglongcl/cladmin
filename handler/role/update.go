@@ -1,15 +1,14 @@
-package user
+package role
 
 import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/router/middleware/inject"
-	"cladmin/service/user_service"
+	"cladmin/service/role_service"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
 )
 
-// Update update a exist user account info.
 func Update(c *gin.Context) {
 	var r UpdateRequest
 	if err := c.Bind(&r); err != nil {
@@ -20,19 +19,16 @@ func Update(c *gin.Context) {
 		SendResponse(c, errno.ErrValidation, nil)
 		return
 	}
-	userService := user_service.User{
-		Id:       r.Id,
-		Password: r.Password,
-		Mobile:   r.Mobile,
-		Email:    r.Email,
-		Status:   r.Status,
-		RoleId:   r.RoleId,
+	roleService := role_service.Role{
+		Id:         r.Id,
+		RoleName:   r.RoleName,
+		Remark:     r.Remark,
+		MenuIdList: r.MenuIdList,
 	}
-	errNo := userService.Edit()
-	if errNo != nil {
+	if errNo := roleService.Edit(); errNo != nil {
 		SendResponse(c, errNo, nil)
 		return
 	}
-	inject.Obj.Common.UserAPI.LoadPolicy(userService.Id)
+	inject.Obj.Common.RoleAPI.LoadPolicy(roleService.Id)
 	SendResponse(c, nil, nil)
 }

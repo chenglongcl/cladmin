@@ -5,7 +5,7 @@ import (
 	"cladmin/pkg/errno"
 	"cladmin/pkg/token"
 	"cladmin/router/middleware/inject"
-	"cladmin/service"
+	"cladmin/service/user_service"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
 )
@@ -20,7 +20,7 @@ func Create(c *gin.Context) {
 		SendResponse(c, errno.ErrValidation, nil)
 		return
 	}
-	userService := service.User{
+	userService := user_service.User{
 		Username:     r.Username,
 		Password:     r.Password,
 		Mobile:       r.Mobile,

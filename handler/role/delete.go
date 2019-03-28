@@ -1,10 +1,10 @@
-package user
+package role
 
 import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/router/middleware/inject"
-	"cladmin/service/user_service"
+	"cladmin/service/role_service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,14 +14,14 @@ func Delete(c *gin.Context) {
 		SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	userService := user_service.User{
+	roleService := role_service.Role{
 		Id: r.Id,
 	}
-	user, _ := userService.Get()
-	if errNo := userService.Delete(); errNo != nil {
+	role, _ := roleService.Get()
+	if errNo := roleService.Delete(); errNo != nil {
 		SendResponse(c, errNo, nil)
 		return
 	}
-	inject.Obj.Enforcer.DeleteUser(user.Username)
+	inject.Obj.Enforcer.DeleteRole(role.RoleName)
 	SendResponse(c, nil, nil)
 }

@@ -1,4 +1,4 @@
-package service
+package user_service
 
 import (
 	"cladmin/model"
@@ -50,15 +50,15 @@ func (a *User) Get() (user *model.User, errNo *errno.Errno) {
 	}
 	return user, nil
 }
-func (a *User) GetList(ps util.PageSetting) ([]*model.UserInfo, uint64, error) {
+func (a *User) GetList(ps util.PageSetting) ([]*model.UserInfo, uint64, *errno.Errno) {
 	info := make([]*model.UserInfo, 0)
 	w := make(map[string]interface{})
 	if a.Username != "" {
 		w["username like"] = "%" + a.Username + "%"
 	}
-	users, count, err := model.GetList(w, ps.Offset, ps.Limit)
+	users, count, err := model.GetUserList(w, ps.Offset, ps.Limit)
 	if err != nil {
-		return nil, count, err
+		return nil, count, errno.ErrDatabase
 	}
 	var ids []uint64
 	for _, user := range users {
@@ -93,10 +93,10 @@ func (a *User) GetList(ps util.PageSetting) ([]*model.UserInfo, uint64, error) {
 		wg.Wait()
 		close(finished)
 	}()
-
 	select {
 	case <-finished:
 	}
+
 	for _, id := range ids {
 		info = append(info, userList.IdMap[id])
 	}
@@ -104,7 +104,7 @@ func (a *User) GetList(ps util.PageSetting) ([]*model.UserInfo, uint64, error) {
 }
 func (a *User) Edit() *errno.Errno {
 	if userExist, _ := model.CheckUserById(a.Id); !userExist {
-		return errno.ErrUserExist
+		return errno.ErrNotUserExist
 	}
 	var password string
 	if a.Password != "" {
@@ -126,7 +126,7 @@ func (a *User) Edit() *errno.Errno {
 }
 
 func (a *User) Delete() *errno.Errno {
-	err := model.Delete(a.Id)
+	err := model.DeleteUser(a.Id)
 	if err != nil {
 		return errno.ErrDatabase
 	}

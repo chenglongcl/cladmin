@@ -3,7 +3,7 @@ package user
 import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
-	"cladmin/service"
+	"cladmin/service/user_service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,7 +13,7 @@ func Get(c *gin.Context) {
 		SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	userService := service.User{
+	userService := user_service.User{
 		Id: r.Id,
 	}
 	user, errNo := userService.Get()

@@ -17,7 +17,7 @@ func CasbinMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		} else if !b {
-			SendResponse(c, errno.ErrNoPermission, nil)
+			SendResponse(c, errno.ErrNotPermission, nil)
 			c.Abort()
 			return
 		}

@@ -2,8 +2,9 @@ package role
 
 import (
 	. "cladmin/handler"
-	"cladmin/model"
 	"cladmin/pkg/errno"
+	"cladmin/router/middleware/inject"
+	"cladmin/service/role_service"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
 )
@@ -18,15 +19,17 @@ func Create(c *gin.Context) {
 		SendResponse(c, errno.ErrValidation, nil)
 		return
 	}
-	data := map[string]interface{}{
-		"role_name":      r.RoleName,
-		"create_user_id": r.CreateUserId,
-		"remark":         r.Remark,
-		"menu_id_list":   r.MenuIdList,
+	roleService := role_service.Role{
+		RoleName:     r.RoleName,
+		Remark:       r.Remark,
+		CreateUserId: r.CreateUserId,
+		MenuIdList:   r.MenuIdList,
 	}
-	if _, err := model.AddRole(data); err != nil {
-		SendResponse(c, errno.ErrDatabase, nil)
+	id, errNo := roleService.Add()
+	if errNo != nil {
+		SendResponse(c, errNo, nil)
 		return
 	}
+	inject.Obj.Common.RoleAPI.LoadPolicy(id)
 	SendResponse(c, nil, nil)
 }
