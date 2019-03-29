@@ -1,10 +1,10 @@
-package user
+package menu
 
 import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/router/middleware/inject"
-	"cladmin/service/user_service"
+	"cladmin/service/menu_service"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
 )
@@ -19,14 +19,16 @@ func Delete(c *gin.Context) {
 		SendResponse(c, errno.ErrValidation, nil)
 		return
 	}
-	userService := user_service.User{
+	menuService := menu_service.Menu{
 		Id: r.Id,
 	}
-	user, _ := userService.Get()
-	if errNo := userService.Delete(); errNo != nil {
+	roleList, errNo := menuService.Delete()
+	if errNo != nil {
 		SendResponse(c, errNo, nil)
 		return
 	}
-	inject.Obj.Enforcer.DeleteUser(user.Username)
+	for _, v := range roleList {
+		inject.Obj.Common.RoleAPI.LoadPolicy(v)
+	}
 	SendResponse(c, nil, nil)
 }

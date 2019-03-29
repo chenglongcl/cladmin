@@ -1,7 +1,9 @@
 package model
 
 import (
+	"github.com/jinzhu/gorm"
 	"github.com/spf13/viper"
+	"sync"
 )
 
 type Menu struct {
@@ -15,8 +17,38 @@ type Menu struct {
 	OrderNum int64  `gorm:"column:order_num"`
 }
 
+type MenuInfo struct {
+	Id         uint64 `json:"id"`
+	ParentId   uint64 `json:"parent_id"`
+	Name       string `json:"name"`
+	Url        string `json:"url"`
+	Perms      string `json:"perms"`
+	Type       int64  `json:"type"`
+	Icon       string `json:"icon"`
+	OrderNum   int64  `json:"order_num"`
+	CreateTime string `json:"create_time"`
+	UpdateTime string `json:"update_time"`
+}
+
+type MenuList struct {
+	Lock  *sync.Mutex
+	IdMap map[uint64]*MenuInfo
+}
+
 func (m *Menu) TableName() string {
 	return viper.GetString("db.prefix") + "menu"
+}
+
+func CheckMenuById(id uint64) (bool, error) {
+	var menu Menu
+	err := DB.Self.Select("id").Where("id = ?", id).First(&menu).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return false, err
+	}
+	if menu.Id > 0 {
+		return true, nil
+	}
+	return false, nil
 }
 
 func AddMenu(data map[string]interface{}) error {
@@ -38,6 +70,31 @@ func AddMenu(data map[string]interface{}) error {
 func EditMenu(data map[string]interface{}) error {
 	var menu Menu
 	if err := DB.Self.Model(&menu).Updates(data).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetMenu(id uint64) (*Menu, error) {
+	var menu Menu
+	err := DB.Self.Where("id = ?", id).First(&menu).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, err
+	}
+	return &menu, nil
+}
+
+func GetMenuList() ([]*Menu, error) {
+	var menuList []*Menu
+	if err := DB.Self.Order("parent_id asc,order_num asc").Find(&menuList).Error; err != nil {
+		return nil, err
+	}
+	return menuList, nil
+}
+
+func DeleteMenu(id uint64) error {
+	var menu Menu
+	if err := DB.Self.Where("id = ?", id).Unscoped().Delete(&menu).Error; err != nil {
 		return err
 	}
 	return nil

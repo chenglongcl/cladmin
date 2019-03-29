@@ -46,6 +46,9 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 
 		apiV1.POST("/menus/create", menu.Create)
 		apiV1.PUT("/menus/update", menu.Update)
+		apiV1.GET("/menus/get", menu.Get)
+		apiV1.GET("/menus/list", menu.List)
+		apiV1.DELETE("/menus/del", menu.Delete)
 	}
 	//user
 	/*userRouter := g.Group("/v1/user")

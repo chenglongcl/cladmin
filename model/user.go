@@ -23,8 +23,8 @@ type UserInfo struct {
 	Mobile    string `json:"mobile"`
 	Email     string `json:"email"`
 	Status    int64  `json:"status"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	CreateTime string `json:"create_time"`
+	UpdatedTime string `json:"updated_time"`
 }
 
 type UserList struct {

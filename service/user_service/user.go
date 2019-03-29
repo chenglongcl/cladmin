@@ -50,6 +50,7 @@ func (a *User) Get() (user *model.User, errNo *errno.Errno) {
 	}
 	return user, nil
 }
+
 func (a *User) GetList(ps util.PageSetting) ([]*model.UserInfo, uint64, *errno.Errno) {
 	info := make([]*model.UserInfo, 0)
 	w := make(map[string]interface{})
@@ -79,13 +80,13 @@ func (a *User) GetList(ps util.PageSetting) ([]*model.UserInfo, uint64, *errno.E
 			userList.Lock.Lock()
 			defer userList.Lock.Unlock()
 			userList.IdMap[u.Id] = &model.UserInfo{
-				Id:        u.Id,
-				Username:  u.Username,
-				Mobile:    u.Mobile,
-				Email:     u.Email,
-				Status:    u.Status,
-				CreatedAt: u.CreatedAt.Format("2006-01-02 15:04:05"),
-				UpdatedAt: u.UpdatedAt.Format("2006-01-02 15:04:05"),
+				Id:          u.Id,
+				Username:    u.Username,
+				Mobile:      u.Mobile,
+				Email:       u.Email,
+				Status:      u.Status,
+				CreateTime:  u.CreatedAt.Format("2006-01-02 15:04:05"),
+				UpdatedTime: u.UpdatedAt.Format("2006-01-02 15:04:05"),
 			}
 		}(u)
 	}
@@ -102,6 +103,7 @@ func (a *User) GetList(ps util.PageSetting) ([]*model.UserInfo, uint64, *errno.E
 	}
 	return info, count, nil
 }
+
 func (a *User) Edit() *errno.Errno {
 	if userExist, _ := model.CheckUserById(a.Id); !userExist {
 		return errno.ErrNotUserExist

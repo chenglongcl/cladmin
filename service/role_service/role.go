@@ -25,7 +25,7 @@ func (a *Role) Add() (id uint64, errNo *errno.Errno) {
 		"menu_id_list":   a.MenuIdList,
 	}
 	if roleExist, _ := model.CheckRoleByRoleName(data["role_name"].(string)); roleExist {
-		return 0, errno.ErrRoleExist
+		return 0, errno.ErrRecordExist
 	}
 	id, err := model.AddRole(data)
 	if err != nil {
@@ -102,7 +102,7 @@ func (a *Role) Edit() *errno.Errno {
 	}
 	if roleNameExist, _ := model.CheckRoleByRoleNameId(data["id"].(uint64), data["role_name"].(string));
 		roleNameExist {
-		return errno.ErrRoleNameExist
+		return errno.ErrRecordExist
 	}
 	err := model.EditRole(data)
 	if err != nil {
