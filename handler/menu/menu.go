@@ -1,13 +1,13 @@
 package menu
 
 type CreateRequest struct {
-	ParentId uint64 `json:"parent_id" binding:"required"`
+	ParentId uint64 `json:"parentId" binding:"required"`
 	Name     string `json:"name" binding:"required"`
 	Url      string `json:"url" binding:"required"`
 	Perms    string `json:"perms"`
 	Type     int64  `json:"type" binding:"required"`
 	Icon     string `json:"icon"`
-	OrderNum int64  `json:"order_num"`
+	OrderNum int64  `json:"orderNum"`
 }
 
 type GetRequest struct {
@@ -15,26 +15,28 @@ type GetRequest struct {
 }
 
 type GetResponse struct {
-	Id         uint64 `json:"id"`
-	ParentId   uint64 `json:"parent_id"`
+	Id         uint64 `json:"menuId"`
+	ParentId   uint64 `json:"parentId"`
+	ParentName string `json:"parentName"`
 	Name       string `json:"name"`
 	Url        string `json:"url"`
 	Perms      string `json:"perms"`
 	Type       int64  `json:"type"`
 	Icon       string `json:"icon"`
-	OrderNum   int64  `json:"order_num"`
-	CreateTime string `json:"create_time"`
+	OrderNum   int64  `json:"orderNum"`
+	Open       int64  `json:"open"`
+	CreateTime string `json:"createTime"`
 }
 
 type UpdateRequest struct {
-	Id       uint64 `json:"id" binding:"required"`
-	ParentId uint64 `json:"parent_id" binding:"required"`
+	Id       uint64 `json:"menuId" binding:"required"`
+	ParentId uint64 `json:"parentId" binding:"required"`
 	Name     string `json:"name" binding:"required"`
 	Url      string `json:"url" binding:"required"`
 	Perms    string `json:"perms"`
 	Type     int64  `json:"type" binding:"required"`
 	Icon     string `json:"icon"`
-	OrderNum int64  `json:"order_num"`
+	OrderNum int64  `json:"orderNum"`
 }
 
 type DeleteRequest struct {

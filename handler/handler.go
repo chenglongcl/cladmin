@@ -35,3 +35,12 @@ func SendResponseUnauthorized(c *gin.Context, err error, data interface{}) {
 		Data:    data,
 	})
 }
+
+func SendResponseForbidden(c *gin.Context, err error, data interface{}) {
+	code, message := errno.DecodeErr(err)
+	c.JSON(http.StatusForbidden, Response{
+		Code:    code,
+		Message: message,
+		Data:    data,
+	})
+}

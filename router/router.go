@@ -35,6 +35,7 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 		apiV1.POST("/users/create", user.Create)
 		apiV1.PUT("/users/update", user.Update)
 		apiV1.GET("/users/get", user.Get)
+		apiV1.GET("/users/personal", user.GetPersonalInfo)
 		apiV1.GET("/users/list", user.List)
 		apiV1.DELETE("/users/del", user.Delete)
 
@@ -49,6 +50,8 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 		apiV1.GET("/menus/get", menu.Get)
 		apiV1.GET("/menus/list", menu.List)
 		apiV1.DELETE("/menus/del", menu.Delete)
+		apiV1.GET("/menus/nav", menu.GetMenuNav)
+		apiV1.GET("/menus/select", menu.Select)
 	}
 	//user
 	/*userRouter := g.Group("/v1/user")

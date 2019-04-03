@@ -18,16 +18,18 @@ type Menu struct {
 }
 
 type MenuInfo struct {
-	Id         uint64 `json:"id"`
-	ParentId   uint64 `json:"parent_id"`
+	Id         uint64 `json:"menuId"`
+	ParentId   uint64 `json:"parentId"`
+	ParentName string `json:"parentName"`
 	Name       string `json:"name"`
 	Url        string `json:"url"`
 	Perms      string `json:"perms"`
 	Type       int64  `json:"type"`
 	Icon       string `json:"icon"`
-	OrderNum   int64  `json:"order_num"`
-	CreateTime string `json:"create_time"`
-	UpdateTime string `json:"update_time"`
+	Open       int64  `json:"open"`
+	OrderNum   int64  `json:"orderNum"`
+	CreateTime string `json:"createTime"`
+	UpdateTime string `json:"updateTime"`
 }
 
 type MenuList struct {
@@ -84,9 +86,27 @@ func GetMenu(id uint64) (*Menu, error) {
 	return &menu, nil
 }
 
-func GetMenuList() ([]*Menu, error) {
+func GetMenuList(w map[string]interface{}) ([]*Menu, error) {
 	var menuList []*Menu
-	if err := DB.Self.Order("parent_id asc,order_num asc").Find(&menuList).Error; err != nil {
+	where, values, err := WhereBuild(w)
+	if err != nil {
+		return nil, err
+	}
+	if err := DB.Self.Where(where, values...).Order("parent_id asc,order_num asc").
+		Find(&menuList).Error; err != nil {
+		return nil, err
+	}
+	return menuList, nil
+}
+
+func GetMenuListWithCondition(w map[string]interface{}) ([]*Menu, error) {
+	var menuList []*Menu
+	where, values, err := WhereBuild(w)
+	if err != nil {
+		return nil, err
+	}
+	if err := DB.Self.Where(where, values...).Order("parent_id asc,order_num asc").
+		Find(&menuList).Error; err != nil {
 		return nil, err
 	}
 	return menuList, nil
@@ -113,4 +133,19 @@ func EditMenuGetRoles(id uint64) []uint64 {
 		roleList = append(roleList, v.Id)
 	}
 	return roleList
+}
+
+//根据用户ID查询菜单
+func GetMenuNavByUserId(userId uint64) ([]*Menu, error) {
+	var menus []*Menu
+	if err := DB.Self.Where("sur.user_id = ?", userId).
+		Joins(" left join sys_role_menu srm on srm.menu_id = sys_menu.id" +
+			" left join sys_role sr on sr.id = srm.role_id" +
+			" left join sys_user_role sur on sur.role_id = sr.id").
+		Order("parent_id asc,order_num asc").
+		Group("id").Find(&menus).Error;
+		err != nil {
+		return menus, err
+	}
+	return menus, nil
 }

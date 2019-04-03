@@ -46,18 +46,11 @@ func Parse(tokenString string, secret string, c *gin.Context) (*Context, error) 
 
 	// Parse the token.
 	token, err := jwt.Parse(tokenString, secretFunc(secret))
-
 	// Parse error.
 	if err != nil {
 		return ctx, err
-
 		// Read the token if it's valid.
 	} else if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		refreshExp := int64(claims["rexp"].(float64))
-		//Check refreshExpire
-		if err := time.Now().Unix() < refreshExp; err != true {
-			return ctx, ErrRefreshExpired
-		}
 		//Check TokenBlackList
 		if exists, _ := redis.Bool(
 			redisClient.Do("HGET", model.RD.Key+"TokenBlackList", tokenString));
@@ -75,6 +68,38 @@ func Parse(tokenString string, secret string, c *gin.Context) (*Context, error) 
 	} else {
 		return ctx, err
 	}
+}
+
+func RefreshParse(tokenString string, secret string, c *gin.Context) (*Context, error) {
+	redisClient := model.RD.Client.Get()
+	defer redisClient.Close()
+	ctx := &Context{}
+	// Parse the token.
+	token, err := jwt.Parse(tokenString, secretFunc(secret))
+	if err != nil && err.Error() != "Token is expired" {
+		return ctx, err
+	}
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		refreshExp := int64(claims["rexp"].(float64))
+		//Check refreshExpire
+		if err := time.Now().Unix() < refreshExp; err != true {
+			return ctx, ErrRefreshExpired
+		}
+		//Check TokenBlackList
+		if exists, _ := redis.Bool(
+			redisClient.Do("HGET", model.RD.Key+"TokenBlackList", tokenString));
+			exists == true {
+			return ctx, ErrInBlackList
+		}
+		ctx.ID = uint64(claims["id"].(float64))
+		ctx.Username = claims["username"].(string)
+		c.Set("JWT_PAYLOAD", claims)
+		c.Set("userId", ctx.ID)
+		c.Set("username", ctx.Username)
+		return ctx, nil
+		// Other errors.
+	}
+	return ctx, err
 }
 
 // ParseRequest gets the token from the header and
@@ -146,7 +171,7 @@ func ParseRefreshRequest(c *gin.Context) (ctx *Context, err error, tokenString s
 	var t string
 	// Parse the header to get the token part.
 	fmt.Sscanf(header, "Bearer %s", &t)
-	ctx, err = Parse(t, secret, c)
+	ctx, err = RefreshParse(t, secret, c)
 	if err != nil {
 		return
 	}

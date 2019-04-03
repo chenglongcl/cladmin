@@ -27,6 +27,17 @@ type GetRequest struct {
 	Id uint64 `form:"id"`
 }
 
+type GetResponse struct {
+	UserId       uint64  `json:"userId"`
+	Username     string  `json:"username"`
+	CreateTime   string  `json:"createTime"`
+	CreateUserId uint64  `json:"createUserId"`
+	Email        string  `json:"email"`
+	Mobile       string  `json:"mobile"`
+	Status       int64   `json:"status"`
+	RoleIdList   []int64 `json:"roleIdList"`
+}
+
 type UpdateRequest struct {
 	Id       uint64  `json:"id" binding:"required"`
 	Password string  `json:"password"`

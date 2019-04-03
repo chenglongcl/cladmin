@@ -23,3 +23,25 @@ func Get(c *gin.Context) {
 	}
 	SendResponse(c, nil, user)
 }
+
+func GetPersonalInfo(c *gin.Context) {
+	id, _ := c.Get("userId")
+	userService := user_service.User{
+		Id: id.(uint64),
+	}
+	user, errNo := userService.Get()
+	if errNo != nil {
+		SendResponse(c, errNo, nil)
+		return
+	}
+	SendResponse(c, nil, GetResponse{
+		UserId:       user.Id,
+		Username:     user.Username,
+		CreateTime:   user.CreatedAt.Format("2006-01-02 15:04:05"),
+		CreateUserId: user.CreateUserId,
+		Email:        user.Email,
+		Mobile:       user.Mobile,
+		Status:       user.Status,
+		RoleIdList:   nil,
+	})
+}
