@@ -18,7 +18,7 @@ type User struct {
 	Email        string
 	Status       int64
 	CreateUserId uint64
-	RoleId       []int64
+	RoleIdList   []int64
 	Enforcer     *casbin.Enforcer `inject:""`
 }
 
@@ -34,7 +34,7 @@ func (a *User) Add() (id uint64, errNo *errno.Errno) {
 		"email":          a.Email,
 		"status":         a.Status,
 		"create_user_id": a.CreateUserId,
-		"role_id":        a.RoleId,
+		"role_id":        a.RoleIdList,
 	}
 	id, err := model.AddUser(data)
 	if err != nil {
@@ -80,13 +80,14 @@ func (a *User) GetList(ps util.PageSetting) ([]*model.UserInfo, uint64, *errno.E
 			userList.Lock.Lock()
 			defer userList.Lock.Unlock()
 			userList.IdMap[u.Id] = &model.UserInfo{
-				Id:          u.Id,
-				Username:    u.Username,
-				Mobile:      u.Mobile,
-				Email:       u.Email,
-				Status:      u.Status,
-				CreateTime:  u.CreatedAt.Format("2006-01-02 15:04:05"),
-				UpdatedTime: u.UpdatedAt.Format("2006-01-02 15:04:05"),
+				Id:           u.Id,
+				Username:     u.Username,
+				Mobile:       u.Mobile,
+				Email:        u.Email,
+				Status:       u.Status,
+				CreateUserId: u.CreateUserId,
+				CreateTime:   u.CreatedAt.Format("2006-01-02 15:04:05"),
+				UpdateTime:   u.UpdatedAt.Format("2006-01-02 15:04:05"),
 			}
 		}(u)
 	}
@@ -105,8 +106,8 @@ func (a *User) GetList(ps util.PageSetting) ([]*model.UserInfo, uint64, *errno.E
 }
 
 func (a *User) Edit() *errno.Errno {
-	if userExist, _ := model.CheckUserById(a.Id); !userExist {
-		return errno.ErrNotUserExist
+	if userExist, _ := model.CheckUserUsernameId(a.Username, a.Id); userExist {
+		return errno.ErrUserExist
 	}
 	var password string
 	if a.Password != "" {
@@ -114,11 +115,12 @@ func (a *User) Edit() *errno.Errno {
 	}
 	data := map[string]interface{}{
 		"id":       a.Id,
+		"username": a.Username,
 		"password": password,
 		"mobile":   a.Mobile,
 		"email":    a.Email,
 		"status":   a.Status,
-		"role_id":  a.RoleId,
+		"role_id":  a.RoleIdList,
 	}
 	err := model.EditUser(data)
 	if err != nil {

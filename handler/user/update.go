@@ -21,12 +21,13 @@ func Update(c *gin.Context) {
 		return
 	}
 	userService := user_service.User{
-		Id:       r.Id,
-		Password: r.Password,
-		Mobile:   r.Mobile,
-		Email:    r.Email,
-		Status:   r.Status,
-		RoleId:   r.RoleId,
+		Id:         r.Id,
+		Username:   r.Username,
+		Password:   r.Password,
+		Mobile:     r.Mobile,
+		Email:      r.Email,
+		Status:     r.Status,
+		RoleIdList: r.RoleIdList,
 	}
 	errNo := userService.Edit()
 	if errNo != nil {

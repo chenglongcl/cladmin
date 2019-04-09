@@ -12,14 +12,14 @@ var (
 	ErrCasbin         = &Errno{Code: 20004, Message: "rbac casbin error"}
 	ErrNotPermission  = &Errno{Code: 20005, Message: "rbac no permission"}
 	ErrRecordNotFound = &Errno{Code: 20006, Message: "record not found"}
-	ErrRecordExist    = &Errno{Code: 20007, Message: "record already exists"}
+	ErrRecordExist    = &Errno{Code: 20007, Message: "该条记录已存在"}
 
 	// user errors
 	ErrEncrypt           = &Errno{Code: 20101, Message: "Error occurred while encrypting the user password."}
 	ErrUserNotFound      = &Errno{Code: 20102, Message: "用户不存在"}
 	ErrTokenInvalid      = &Errno{Code: 20103, Message: "The token was invalid."}
 	ErrPasswordIncorrect = &Errno{Code: 20104, Message: "密码错误"}
-	ErrUserExist         = &Errno{Code: 20105, Message: "User already exists"}
+	ErrUserExist         = &Errno{Code: 20105, Message: "用户名已存在"}
 	ErrNotUserExist      = &Errno{Code: 20106, Message: "User does not exist"}
 
 	//upload errors

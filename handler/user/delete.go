@@ -7,11 +7,12 @@ import (
 	"cladmin/service/user_service"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
+	"sync"
 )
 
 func Delete(c *gin.Context) {
 	var r DeleteRequest
-	if err := c.BindQuery(&r); err != nil {
+	if err := c.Bind(&r); err != nil {
 		SendResponse(c, errno.ErrBind, nil)
 		return
 	}
@@ -19,14 +20,32 @@ func Delete(c *gin.Context) {
 		SendResponse(c, errno.ErrValidation, nil)
 		return
 	}
-	userService := user_service.User{
-		Id: r.Id,
+	wg := sync.WaitGroup{}
+	finished := make(chan bool, 1)
+	errorChanel := make(chan *errno.Errno, 1)
+	for _, id := range r.Ids {
+		wg.Add(1)
+		go func(id uint64) {
+			defer wg.Done()
+			userService := user_service.User{
+				Id: id,
+			}
+			user, _ := userService.Get()
+			if errNo := userService.Delete(); errNo != nil {
+				errorChanel <- errNo
+				return
+			}
+			inject.Obj.Enforcer.DeleteUser(user.Username)
+		}(id)
 	}
-	user, _ := userService.Get()
-	if errNo := userService.Delete(); errNo != nil {
+	go func() {
+		wg.Wait()
+		close(finished)
+	}()
+	select {
+	case <-finished:
+		SendResponse(c, nil, nil)
+	case errNo := <-errorChanel:
 		SendResponse(c, errNo, nil)
-		return
 	}
-	inject.Obj.Enforcer.DeleteUser(user.Username)
-	SendResponse(c, nil, nil)
 }

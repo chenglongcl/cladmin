@@ -28,3 +28,13 @@ func List(c *gin.Context) {
 	}
 	SendResponse(c, nil, util.PageUtil(count, ps.Page, ps.Limit, roles))
 }
+
+func Select(c *gin.Context) {
+	roleService := role_service.Role{}
+	roles, errNo := roleService.GetAll()
+	if errNo != nil {
+		SendResponse(c, errNo, nil)
+		return
+	}
+	SendResponse(c, nil, roles)
+}

@@ -5,6 +5,7 @@ import (
 	"cladmin/pkg/errno"
 	"cladmin/util"
 	"github.com/casbin/casbin"
+	"github.com/json-iterator/go"
 	"sync"
 )
 
@@ -42,6 +43,56 @@ func (a *Role) Get() (*model.Role, *errno.Errno) {
 	return role, nil
 }
 
+func (a *Role) GetAll() ([]*model.RoleInfo, *errno.Errno) {
+	roles, err := model.GetRolesAll()
+	if err != nil {
+		return nil, errno.ErrDatabase
+	}
+	var ids []uint64
+	for _, role := range roles {
+		ids = append(ids, role.Id)
+	}
+
+	info := make([]*model.RoleInfo, 0)
+	wg := sync.WaitGroup{}
+	roleList := model.RoleList{
+		Lock:  new(sync.Mutex),
+		IdMap: make(map[uint64]*model.RoleInfo, len(roles)),
+	}
+	finished := make(chan bool, 1)
+
+	for _, role := range roles {
+		wg.Add(1)
+		go func(role *model.Role) {
+			defer wg.Done()
+			roleList.Lock.Lock()
+			defer roleList.Lock.Unlock()
+			var menuIdList []int64
+			jsoniter.UnmarshalFromString(role.MenuIdList, &menuIdList)
+			roleList.IdMap[role.Id] = &model.RoleInfo{
+				Id:           role.Id,
+				RoleName:     role.RoleName,
+				Remark:       role.Remark,
+				MenuIdList:   menuIdList,
+				CreateUserId: role.CreateUserId,
+				CreateTime:   role.CreatedAt.Format("2006-01-02 15:04:05"),
+			}
+		}(role)
+	}
+	go func() {
+		wg.Wait()
+		close(finished)
+	}()
+	select {
+	case <-finished:
+	}
+
+	for _, id := range ids {
+		info = append(info, roleList.IdMap[id])
+	}
+	return info, nil
+}
+
 func (a *Role) GetList(ps util.PageSetting) ([]*model.RoleInfo, uint64, *errno.Errno) {
 	w := make(map[string]interface{})
 	if a.RoleName != "" {
@@ -70,10 +121,13 @@ func (a *Role) GetList(ps util.PageSetting) ([]*model.RoleInfo, uint64, *errno.E
 			defer wg.Done()
 			roleList.Lock.Lock()
 			defer roleList.Lock.Unlock()
+			var menuIdList []int64
+			jsoniter.UnmarshalFromString(role.MenuIdList, &menuIdList)
 			roleList.IdMap[role.Id] = &model.RoleInfo{
 				Id:           role.Id,
 				RoleName:     role.RoleName,
 				Remark:       role.Remark,
+				MenuIdList:   menuIdList,
 				CreateUserId: role.CreateUserId,
 				CreateTime:   role.CreatedAt.Format("2006-01-02 15:04:05"),
 			}

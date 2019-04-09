@@ -8,23 +8,24 @@ import (
 
 type User struct {
 	BaseModel
-	Username     string `json:"username" gorm:"column:username;not null,unique_index"`
-	Password     string `json:"password" gorm:"column:password;not null"`
-	Mobile       string `json:"mobile" gorm:"column:mobile"`
-	Email        string `json:"email" gorm:"column:email"`
-	Status       int64  `json:"status" gorm:"column:status"`
-	CreateUserId uint64 `json:"create_user_id" gorm:"column:create_user_id"`
-	Role         []Role `json:"role" gorm:"many2many:sys_user_role;"`
+	Username     string `gorm:"column:username;not null,unique_index"`
+	Password     string `gorm:"column:password;not null"`
+	Mobile       string `gorm:"column:mobile"`
+	Email        string `gorm:"column:email"`
+	Status       int64  `gorm:"column:status"`
+	CreateUserId uint64 `gorm:"column:create_user_id"`
+	Role         []Role `gorm:"many2many:sys_user_role;"`
 }
 
 type UserInfo struct {
-	Id        uint64 `json:"id"`
-	Username  string `json:"username"`
-	Mobile    string `json:"mobile"`
-	Email     string `json:"email"`
-	Status    int64  `json:"status"`
-	CreateTime string `json:"create_time"`
-	UpdatedTime string `json:"updated_time"`
+	Id           uint64 `json:"userId"`
+	Username     string `json:"username"`
+	Mobile       string `json:"mobile"`
+	Email        string `json:"email"`
+	Status       int64  `json:"status"`
+	CreateUserId uint64 `json:"createUserId"`
+	CreateTime   string `json:"createTime"`
+	UpdateTime   string `json:"updateTime"`
 }
 
 type UserList struct {
@@ -63,6 +64,19 @@ func CheckUserByUsername(username string) (bool, error) {
 	if user.Id > 0 {
 		return true, nil
 	}
+	return false, nil
+}
+
+func CheckUserUsernameId(username string, id uint64) (bool, error) {
+	var user User
+	err := DB.Self.Where("username = ? AND id != ?", username, id).First(&user).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return false, err
+	}
+	if user.Id > 0 {
+		return true, nil
+	}
+
 	return false, nil
 }
 

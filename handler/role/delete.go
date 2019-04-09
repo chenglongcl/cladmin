@@ -7,11 +7,12 @@ import (
 	"cladmin/service/role_service"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
+	"sync"
 )
 
 func Delete(c *gin.Context) {
 	var r DeleteRequest
-	if err := c.BindQuery(&r); err != nil {
+	if err := c.Bind(&r); err != nil {
 		SendResponse(c, errno.ErrBind, nil)
 		return
 	}
@@ -19,14 +20,33 @@ func Delete(c *gin.Context) {
 		SendResponse(c, errno.ErrValidation, nil)
 		return
 	}
-	roleService := role_service.Role{
-		Id: r.Id,
+
+	finished := make(chan bool, 1)
+	errorChanel := make(chan *errno.Errno, 1)
+	wg := sync.WaitGroup{}
+	for _, id := range r.Ids {
+		wg.Add(1)
+		go func(id uint64) {
+			defer wg.Done()
+			roleService := role_service.Role{
+				Id: id,
+			}
+			role, _ := roleService.Get()
+			if errNo := roleService.Delete(); errNo != nil {
+				errorChanel <- errNo
+				return
+			}
+			inject.Obj.Enforcer.DeleteRole(role.RoleName)
+		}(id)
 	}
-	role, _ := roleService.Get()
-	if errNo := roleService.Delete(); errNo != nil {
+	go func() {
+		wg.Wait()
+		close(finished)
+	}()
+	select {
+	case errNo := <-errorChanel:
 		SendResponse(c, errNo, nil)
-		return
+	case <-finished:
+		SendResponse(c, nil, nil)
 	}
-	inject.Obj.Enforcer.DeleteRole(role.RoleName)
-	SendResponse(c, nil, nil)
 }

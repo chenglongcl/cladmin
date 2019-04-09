@@ -5,6 +5,7 @@ import (
 	"cladmin/pkg/errno"
 	"cladmin/service/role_service"
 	"github.com/gin-gonic/gin"
+	"github.com/json-iterator/go"
 )
 
 func Get(c *gin.Context) {
@@ -21,10 +22,8 @@ func Get(c *gin.Context) {
 		SendResponse(c, errNo, nil)
 		return
 	}
-	var menuIdList []uint64
-	for _, v := range role.Menu {
-		menuIdList = append(menuIdList, v.Id)
-	}
+	menuIdList := make([]int64, 0)
+	jsoniter.UnmarshalFromString(role.MenuIdList, &menuIdList)
 	SendResponse(c, nil, GetResponse{
 		Id:           role.Id,
 		RoleName:     role.RoleName,

@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/jinzhu/gorm"
+	"github.com/json-iterator/go"
 	"github.com/spf13/viper"
 	"sync"
 )
@@ -10,16 +11,18 @@ type Role struct {
 	BaseModel
 	RoleName     string
 	Remark       string
+	MenuIdList   string
 	CreateUserId uint64
 	Menu         []Menu `gorm:"many2many:sys_role_menu;"`
 }
 
 type RoleInfo struct {
-	Id           uint64 `json:"id"`
-	RoleName     string `json:"role_name"`
-	Remark       string `json:"remark"`
-	CreateUserId uint64 `json:"create_user_id"`
-	CreateTime   string `json:"create_time"`
+	Id           uint64  `json:"roleId"`
+	RoleName     string  `json:"roleName"`
+	Remark       string  `json:"remark"`
+	MenuIdList   []int64 `json:"menuIdList"`
+	CreateUserId uint64  `json:"createUserId"`
+	CreateTime   string  `json:"createTime"`
 }
 
 type RoleList struct {
@@ -30,6 +33,7 @@ type RoleList struct {
 func (r *Role) TableName() string {
 	return viper.GetString("db.prefix") + "role"
 }
+
 func CheckRoleById(id uint64) (bool, error) {
 	var role Role
 	err := DB.Self.Select("id").Where("id = ?", id).First(&role).Error
@@ -67,10 +71,12 @@ func CheckRoleByRoleNameId(id uint64, roleName string) (bool, error) {
 }
 
 func AddRole(data map[string]interface{}) (id uint64, err error) {
+	menuIdListJson, _ := jsoniter.MarshalToString(data["menu_id_list"])
 	role := Role{
 		RoleName:     data["role_name"].(string),
 		Remark:       data["remark"].(string),
 		CreateUserId: data["create_user_id"].(uint64),
+		MenuIdList:   menuIdListJson,
 	}
 	var menu []Menu
 	DB.Self.Where("id in (?)", data["menu_id_list"].([]int64)).Find(&menu)
@@ -89,7 +95,8 @@ func EditRole(data map[string]interface{}) error {
 		return err
 	}
 	DB.Self.Where("id in (?)", data["menu_id_list"].([]int64)).Find(&menu)
-	delete(data, "menu_id_list")
+	//delete(data, "menu_id_list")
+	data["menu_id_list"], _ = jsoniter.MarshalToString(data["menu_id_list"])
 	DB.Self.Model(&role).Association("Menu").Replace(&menu)
 	DB.Self.Model(&role).Update(data)
 	return nil

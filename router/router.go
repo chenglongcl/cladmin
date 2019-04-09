@@ -37,13 +37,14 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 		apiV1.GET("/users/get", user.Get)
 		apiV1.GET("/users/personal", user.GetPersonalInfo)
 		apiV1.GET("/users/list", user.List)
-		apiV1.DELETE("/users/del", user.Delete)
+		apiV1.POST("/users/del", user.Delete)
 
 		apiV1.POST("/roles/create", role.Create)
 		apiV1.GET("/roles/get", role.Get)
 		apiV1.GET("/roles/list", role.List)
 		apiV1.PUT("/roles/update", role.Update)
-		apiV1.DELETE("/roles/del", role.Delete)
+		apiV1.POST("/roles/del", role.Delete)
+		apiV1.GET("/roles/select", role.Select)
 
 		apiV1.POST("/menus/create", menu.Create)
 		apiV1.PUT("/menus/update", menu.Update)

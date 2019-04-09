@@ -7,13 +7,14 @@ type PageSetting struct {
 	Limit  uint64 `json:"limit"`
 	Page   uint64 `json:"page"`
 }
+
 type Page struct {
-	CurrentPage uint64      `json:"current_page"`
-	PageSize    uint64      `json:"page_size"`
-	TotalPage   uint64      `json:"total_page"`
-	TotalCount  uint64      `json:"total_count"`
-	FirstPage   bool        `json:"first_page"`
-	LastPage    bool        `json:"last_page"`
+	CurrentPage uint64      `json:"currentPage"`
+	PageSize    uint64      `json:"pageSize"`
+	TotalPage   uint64      `json:"totalPage"`
+	TotalCount  uint64      `json:"totalCount"`
+	FirstPage   bool        `json:"firstPage"`
+	LastPage    bool        `json:"lastPage"`
 	List        interface{} `json:"list"`
 }
 

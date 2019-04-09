@@ -21,7 +21,20 @@ func Get(c *gin.Context) {
 		SendResponse(c, errNo, nil)
 		return
 	}
-	SendResponse(c, nil, user)
+	roleIdList := make([]uint64, len(user.Role))
+	for _, role := range user.Role {
+		roleIdList = append(roleIdList, role.Id)
+	}
+	SendResponse(c, nil, GetResponse{
+		UserId:       user.Id,
+		Username:     user.Username,
+		CreateTime:   user.CreatedAt.Format("2006-01-02 15:04:05"),
+		CreateUserId: user.CreateUserId,
+		Email:        user.Email,
+		Mobile:       user.Mobile,
+		Status:       user.Status,
+		RoleIdList:   roleIdList,
+	})
 }
 
 func GetPersonalInfo(c *gin.Context) {
