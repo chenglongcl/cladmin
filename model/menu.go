@@ -117,6 +117,10 @@ func DeleteMenu(id uint64) error {
 	if err := DB.Self.Where("id = ?", id).Unscoped().Delete(&menu).Error; err != nil {
 		return err
 	}
+	go func() {
+		//删除中间表role_menu关联数据
+		DeleteRoleMenuByMenuId(id)
+	}()
 	return nil
 }
 

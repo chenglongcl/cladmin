@@ -194,7 +194,7 @@ func (a *Role) LoadPolicy(id uint64) error {
 	if err != nil {
 		return err
 	}
-	a.Enforcer.DeleteRole(role.RoleName)
+	a.Enforcer.DeletePermissionsForUser(role.RoleName)
 	for _, menu := range role.Menu {
 		if menu.Url == "" {
 			continue

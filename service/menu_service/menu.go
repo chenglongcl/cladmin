@@ -120,10 +120,10 @@ func (a *Menu) Edit() ([]uint64, *errno.Errno) {
 }
 
 func (a *Menu) Delete() ([]uint64, *errno.Errno) {
+	roleList := model.EditMenuGetRoles(a.Id)
 	if err := model.DeleteMenu(a.Id); err != nil {
 		return nil, errno.ErrDatabase
 	}
-	roleList := model.EditMenuGetRoles(a.Id)
 	return roleList, nil
 }
 

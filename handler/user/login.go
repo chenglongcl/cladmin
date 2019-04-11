@@ -15,7 +15,7 @@ func Login(c *gin.Context) {
 		SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	user, err := model.GetUserByUsername(u.Username, []string{"id", "username", "password"})
+	user, err := model.GetUserByUsername(u.Username)
 	if err != nil {
 		SendResponse(c, errno.ErrUserNotFound, nil)
 		return
@@ -23,6 +23,11 @@ func Login(c *gin.Context) {
 	//Compare the login password with user password
 	if err := auth.Compare(user.Password, u.Password); err != nil {
 		SendResponse(c, errno.ErrPasswordIncorrect, nil)
+		return
+	}
+	//user locked
+	if user.Status != 1 {
+		SendResponse(c, errno.ErrDisabledUser, nil)
 		return
 	}
 	// Sign the json web token.

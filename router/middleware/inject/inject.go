@@ -2,6 +2,7 @@ package inject
 
 import (
 	"cladmin/service/bll"
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/casbin/casbin"
 	"github.com/facebookgo/inject"
 	"github.com/lexkong/log"
@@ -10,8 +11,9 @@ import (
 
 // Object 注入对象
 type Object struct {
-	Common   *bll.Common
-	Enforcer *casbin.Enforcer
+	Common          *bll.Common
+	Enforcer        *casbin.Enforcer
+	AliYunOssClient *oss.Client
 }
 
 var Obj *Object
@@ -27,16 +29,24 @@ func Init() {
 	} else if osType == "linux" {
 		path = "conf/rbac_model.conf"
 	}
+	//casbin new
 	enforcer := casbin.NewEnforcer(path, false)
 	_ = g.Provide(&inject.Object{Value: enforcer})
+	//aliyun oss new
+	aliYunOssClient, _ := oss.New("http://oss-cn-shanghai.aliyuncs.com",
+		"LTAIcpkAxHSr8L6t",
+		"tI2UWkXUzutGMtVeIWSzCrX5IKmONS")
+	_ = g.Provide(&inject.Object{Value: aliYunOssClient})
+	//common new
 	Common := new(bll.Common)
 	_ = g.Provide(&inject.Object{Value: Common})
 	if err := g.Populate(); err != nil {
 		log.Error("初始化依赖注入发生错误：", err)
 	}
 	Obj = &Object{
-		Enforcer: enforcer,
-		Common:   Common,
+		Common:          Common,
+		Enforcer:        enforcer,
+		AliYunOssClient: aliYunOssClient,
 	}
 	return
 }

@@ -21,6 +21,12 @@
 			"revisionTime": "2017-08-10T14:37:23Z"
 		},
 		{
+			"checksumSHA1": "7QsiTTGtMbaCOpwS9p5RP7OqtvE=",
+			"path": "github.com/aliyun/aliyun-oss-go-sdk/oss",
+			"revision": "86c17b95fcd5db33628a61e492fb4a1a937d5906",
+			"revisionTime": "2019-03-07T16:52:28Z"
+		},
+		{
 			"checksumSHA1": "6TOKnsIGoe94Fysbixt41d6YF5c=",
 			"path": "github.com/casbin/casbin",
 			"revision": "a5a1667e25abdbc5a4414ea9b6b889764174b7ec",
@@ -508,6 +514,12 @@
 			"path": "golang.org/x/text/width",
 			"revision": "4a13a3860a6e13b9c8d09ceeb19f19a4b68c1a4e",
 			"revisionTime": "2018-03-14T17:21:31Z"
+		},
+		{
+			"checksumSHA1": "mrstOR/H+4YQqwZMhUb32CYdDZA=",
+			"path": "golang.org/x/time/rate",
+			"revision": "9d24e82272b4f38b78bc8cff74fa936d31ccd8ef",
+			"revisionTime": "2019-02-15T22:48:40Z"
 		},
 		{
 			"checksumSHA1": "P/k5ZGf0lEBgpKgkwy++F7K1PSg=",

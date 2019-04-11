@@ -37,9 +37,9 @@ func (u *User) TableName() string {
 	return viper.GetString("db.prefix") + "user"
 }
 
-func GetUserByUsername(username string, fields []string) (*User, error) {
+func GetUserByUsername(username string) (*User, error) {
 	u := &User{}
-	d := DB.Self.Select(fields).Where("username = ?", username).First(&u)
+	d := DB.Self.Where("username = ?", username).First(&u)
 	return u, d.Error
 }
 

@@ -96,6 +96,7 @@ func EditRole(data map[string]interface{}) error {
 	}
 	DB.Self.Where("id in (?)", data["menu_id_list"].([]int64)).Find(&menu)
 	//delete(data, "menu_id_list")
+	//配合前端tree半选状态使用
 	data["menu_id_list"], _ = jsoniter.MarshalToString(data["menu_id_list"])
 	DB.Self.Model(&role).Association("Menu").Replace(&menu)
 	DB.Self.Model(&role).Update(data)
@@ -109,6 +110,10 @@ func DeleteRole(id uint64) error {
 	if err := DB.Self.Unscoped().Where("id = ?", id).Delete(&role).Error; err != nil {
 		return err
 	}
+	go func() {
+		//删除中间表user_role关联数据
+		DeleteUserRoleByRoleId(id)
+	}()
 	return nil
 }
 

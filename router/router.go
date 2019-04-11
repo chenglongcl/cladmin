@@ -37,20 +37,20 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 		apiV1.GET("/users/get", user.Get)
 		apiV1.GET("/users/personal", user.GetPersonalInfo)
 		apiV1.GET("/users/list", user.List)
-		apiV1.POST("/users/del", user.Delete)
+		apiV1.POST("/users/delete", user.Delete)
 
 		apiV1.POST("/roles/create", role.Create)
 		apiV1.GET("/roles/get", role.Get)
 		apiV1.GET("/roles/list", role.List)
 		apiV1.PUT("/roles/update", role.Update)
-		apiV1.POST("/roles/del", role.Delete)
+		apiV1.POST("/roles/delete", role.Delete)
 		apiV1.GET("/roles/select", role.Select)
 
 		apiV1.POST("/menus/create", menu.Create)
 		apiV1.PUT("/menus/update", menu.Update)
 		apiV1.GET("/menus/get", menu.Get)
 		apiV1.GET("/menus/list", menu.List)
-		apiV1.DELETE("/menus/del", menu.Delete)
+		apiV1.DELETE("/menus/delete", menu.Delete)
 		apiV1.GET("/menus/nav", menu.GetMenuNav)
 		apiV1.GET("/menus/select", menu.Select)
 	}
@@ -76,6 +76,7 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 	uploadRouter := g.Group("/v1/upload")
 	{
 		uploadRouter.POST("/image", upload.Img)
+		uploadRouter.POST("/test", upload.ToOss)
 	}
 	//The health check handlers
 	svcd := g.Group("/sd")
