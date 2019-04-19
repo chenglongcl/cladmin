@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/teris-io/shortid"
+	"time"
 )
 
 func GenShortId() (string, error) {
@@ -30,4 +31,9 @@ func GetReqID(c *gin.Context) string {
 		return requestId
 	}
 	return ""
+}
+
+func GetGmtIso8601(expireEnd int64) string {
+	tokenExpire := time.Unix(expireEnd, 0).Format("2006-01-02T15:04:05Z")
+	return tokenExpire
 }

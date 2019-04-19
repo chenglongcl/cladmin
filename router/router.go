@@ -1,7 +1,10 @@
 package router
 
 import (
+	"cladmin/handler/category"
+	"cladmin/handler/config"
 	"cladmin/handler/menu"
+	"cladmin/handler/oss"
 	"cladmin/handler/role"
 	"cladmin/handler/sd"
 	"cladmin/handler/upload"
@@ -26,7 +29,7 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 	g.POST("/login", user.Login)
 	g.GET("/refresh", user.Refresh)
 	//api get AliyunOss signature
-	g.GET("/oss/generatesignature", sd.GenerateSignature)
+	g.GET("/oss/generatesignature", oss.WebUploadSign)
 
 	apiV1 := g.Group("/v1")
 	apiV1.Use(middleware.AuthMiddleware())
@@ -53,6 +56,18 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 		apiV1.DELETE("/menus/delete", menu.Delete)
 		apiV1.GET("/menus/nav", menu.GetMenuNav)
 		apiV1.GET("/menus/select", menu.Select)
+
+		apiV1.GET("/config/get", config.Get)
+		apiV1.PUT("/config/update", config.Update)
+
+		apiV1.PUT("/oss/saveConfig", oss.SaveConfing)
+		apiV1.POST("/oss/upload", oss.Upload)
+
+		apiV1.POST("/categories/create", category.Create)
+		apiV1.PUT("/categories/update", category.Update)
+		apiV1.GET("/categories/get", category.Get)
+		apiV1.GET("/categories/list", category.List)
+		apiV1.DELETE("/categories/delete", category.Delete)
 	}
 	//user
 	/*userRouter := g.Group("/v1/user")
@@ -76,7 +91,6 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 	uploadRouter := g.Group("/v1/upload")
 	{
 		uploadRouter.POST("/image", upload.Img)
-		uploadRouter.POST("/test", upload.ToOss)
 	}
 	//The health check handlers
 	svcd := g.Group("/sd")

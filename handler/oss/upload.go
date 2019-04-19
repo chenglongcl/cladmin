@@ -1,4 +1,4 @@
-package upload
+package oss
 
 import (
 	. "cladmin/handler"
@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ToOss(c *gin.Context) {
+func Upload(c *gin.Context) {
 	var r UploadOssRequest
 	if err := c.BindQuery(&r); err != nil {
 		SendResponse(c, errno.ErrBind, nil)
@@ -20,7 +20,7 @@ func ToOss(c *gin.Context) {
 	}
 	switch r.OssName {
 	case "aliYunOss":
-		fileUrl, errNo := inject.Obj.Common.AliYunOssApi.PutObjectWithByte(file, header);
+		fileUrl, errNo := inject.Obj.Common.AliYunOssApi.PutObjectWithByte(file, header)
 		if errNo != nil {
 			SendResponse(c, errNo, nil)
 			return

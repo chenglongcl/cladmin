@@ -18,6 +18,7 @@ type PolicyConfig struct {
 	Expiration string     `json:"expiration"`
 	Conditions [][]string `json:"conditions"`
 }
+
 type PolicyToken struct {
 	AccessKeyId string `json:"accessid"`
 	Host        string `json:"host"`
