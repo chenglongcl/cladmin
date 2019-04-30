@@ -1,37 +1,39 @@
 package article
 
 import (
-	"github.com/gin-gonic/gin"
-	"cladmin/model"
-	"strconv"
-	"cladmin/pkg/errno"
 	. "cladmin/handler"
+	"cladmin/pkg/errno"
+	"cladmin/service/article_service"
+	"cladmin/util"
+	"github.com/gin-gonic/gin"
 	"github.com/json-iterator/go"
 )
 
 func Get(c *gin.Context) {
-	articleId, _ := strconv.Atoi(c.Param("id"))
-	article, err := model.GetArticle(uint64(articleId))
-	if err != nil {
-		SendResponse(c, errno.ErrUserNotFound, nil)
+	var r GetRequest
+	if err := c.BindQuery(&r); err != nil {
+		SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	// unmarshal json fields
-	images := jsonParse(article)
-	rep := &CreateResponse{
-		Id:        article.Id,
-		CateId:    article.CateId,
-		Title:     article.Title,
-		Images:    images,
-		Author:    Author{Id: article.Author.Id, Username: article.Author.Username},
-		Content:   article.Content,
-		CreatedAt: article.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt: article.UpdatedAt.Format("2006-01-02 15:04:05"),
+	if err := util.Validate(&r); err != nil {
+		SendResponse(c, errno.ErrValidation, nil)
+		return
 	}
-	SendResponse(c, nil, rep)
-}
-
-func jsonParse(a *model.ArticleModel) (images []string) {
-	jsoniter.Unmarshal([]byte(a.Images), &images)
-	return
+	articleService := article_service.Article{
+		Id: r.Id,
+	}
+	article, errNo := articleService.Get()
+	if errNo != nil {
+		SendResponse(c, errNo, nil)
+		return
+	}
+	var thumb []string
+	jsoniter.UnmarshalFromString(article.Thumb, &thumb)
+	SendResponse(c, nil, GetResponse{
+		Id:      article.Id,
+		CateId:  article.CateId,
+		Title:   article.Title,
+		Content: article.Content,
+		Thumb:   thumb,
+	})
 }

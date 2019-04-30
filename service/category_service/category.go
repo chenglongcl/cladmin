@@ -29,11 +29,11 @@ func (a *Category) Add() *errno.Errno {
 
 func (a *Category) Edit() *errno.Errno {
 	data := map[string]interface{}{
-		"id":           a.Id,
-		"parent_id":    a.ParentId,
-		"name":         a.Name,
-		"icon":         a.Icon,
-		"order_number": a.OrderNum,
+		"id":        a.Id,
+		"parent_id": a.ParentId,
+		"name":      a.Name,
+		"icon":      a.Icon,
+		"order_num": a.OrderNum,
 	}
 	if err := model.EditCategory(data); err != nil {
 		return errno.ErrDatabase

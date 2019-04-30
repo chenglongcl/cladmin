@@ -1,46 +1,88 @@
 package model
 
 import (
+	"github.com/jinzhu/gorm"
 	"github.com/spf13/viper"
-	"gopkg.in/go-playground/validator.v9"
+	"sync"
 )
 
-type ArticleModel struct {
+type Article struct {
 	BaseModel
-	CateId  uint64      `json:"cate_id" gorm:"column:cate_id;not null"`
-	Title   string      `json:"title" gorm:"column:title;not null" binding:"required" validate:"min=1,max=32"`
-	Content string      `json:"content" gorm:"column:content;type:text"`
-	Images  string      `json:"images" gorm:"column:images;type:text"`
-	Uid     uint64      `json:"uid" gorm:"column:uid;not null"`
-	Author  AuthorModel `gorm:"ForeignKey:Uid"`
+	UserId  uint64 `gorm:"column:user_id"`
+	CateId  uint64 `gorm:"column:cate_id"`
+	Title   string `gorm:"column:title;"`
+	Content string `gorm:"column:content;type:text"`
+	Thumb   string `gorm:"column:thumb;type:text"`
 }
 
-func (a *ArticleModel) TableName() string {
-	return viper.GetString("db.prefix") + "articles"
+type ArticleInfo struct {
+	Id         uint64   `json:"articleId"`
+	UserId     uint64   `json:"userId"`
+	CateId     uint64   `json:"cateId"`
+	Title      string   `json:"title"`
+	Thumb      []string `json:"thumb"`
+	CreateTime string   `json:"createTime"`
 }
-func (a *ArticleModel) CreateArticle() error {
-	return DB.Self.Create(&a).Error
+
+type ArticleList struct {
+	Lock  *sync.Mutex
+	IdMap map[uint64]*ArticleInfo
 }
-func GetArticle(id uint64) (*ArticleModel, error) {
-	a := &ArticleModel{}
-	d := DB.Self.Where("id = ?", id).First(&a)
-	DB.Self.Model(&a).Select("id,username").Related(&a.Author, "Author")
-	return a, d.Error
+
+func (a *Article) TableName() string {
+	return viper.GetString("db.prefix") + "article"
 }
-func ListArticle(CateId uint64, Offset uint64, Limit uint64) ([]*ArticleModel, uint64, error) {
-	articles := make([]*ArticleModel, 0)
+
+func AddArticle(data map[string]interface{}) error {
+	article := Article{
+		UserId:  data["user_id"].(uint64),
+		CateId:  data["cate_id"].(uint64),
+		Title:   data["title"].(string),
+		Content: data["content"].(string),
+		Thumb:   data["thumb"].(string),
+	}
+	if err := DB.Self.Create(&article).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func EditArticle(data map[string]interface{}) error {
+	var article Article
+	if err := DB.Self.Model(&article).Updates(data).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetArticle(id uint64) (*Article, error) {
+	var article Article
+	err := DB.Self.Where("id = ?", id).First(&article).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, err
+	}
+	return &article, nil
+}
+
+func GetArticleList(w map[string]interface{}, offset, limit uint64) ([]*Article, uint64, error) {
+	articles := make([]*Article, 0)
 	var count uint64
-	where := map[string]interface{}{"cate_id": CateId}
-	if err := DB.Self.Model(&ArticleModel{}).Where(where).Count(&count).Error; err != nil {
+	where, values, _ := WhereBuild(w)
+	if err := DB.Self.Model(&Article{}).Where(where, values...).Count(&count).Error; err != nil {
 		return articles, count, err
 	}
-	if err := DB.Self.Preload("Author").Where(where).Offset(Offset).Limit(Limit).
-		Order("id desc").Find(&articles).Error; err != nil {
+	if err := DB.Self.Model(&Article{}).Where(where, values...).Offset(offset).Limit(limit).Order("id desc").
+		Find(&articles).Error;
+		err != nil {
 		return articles, count, err
 	}
 	return articles, count, nil
 }
-func (a *ArticleModel) Validate() error {
-	validate := validator.New()
-	return validate.Struct(a)
+
+func DeleteArticle(id uint64) error {
+	var article Article
+	if err := DB.Self.Where("id = ?", id).Delete(&article).Error; err != nil {
+		return err
+	}
+	return nil
 }

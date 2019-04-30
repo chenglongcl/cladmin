@@ -8,7 +8,7 @@ type CreateRequest struct {
 }
 
 type UpdateRequest struct {
-	Id       uint64 `json:"id" binding:"exists"`
+	Id       uint64 `json:"categoryId" binding:"required"`
 	ParentId uint64 `json:"parentId" binding:"exists"`
 	Name     string `json:"name" binding:"required"`
 	Icon     string `json:"icon"`

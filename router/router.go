@@ -1,6 +1,7 @@
 package router
 
 import (
+	"cladmin/handler/article"
 	"cladmin/handler/category"
 	"cladmin/handler/config"
 	"cladmin/handler/menu"
@@ -68,6 +69,12 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 		apiV1.GET("/categories/get", category.Get)
 		apiV1.GET("/categories/list", category.List)
 		apiV1.DELETE("/categories/delete", category.Delete)
+
+		apiV1.POST("/articles/create", article.Create)
+		apiV1.PUT("/articles/update", article.Update)
+		apiV1.GET("/articles/get", article.Get)
+		apiV1.GET("/articles/list", article.List)
+		apiV1.DELETE("/articles/delete", article.Delete)
 	}
 	//user
 	/*userRouter := g.Group("/v1/user")

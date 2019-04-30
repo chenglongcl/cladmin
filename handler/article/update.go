@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Create(c *gin.Context) {
-	var r CreateRequest
+func Update(c *gin.Context) {
+	var r UpdateRequest
 	if err := c.Bind(&r); err != nil {
 		SendResponse(c, errno.ErrBind, nil)
 		return
@@ -19,13 +19,14 @@ func Create(c *gin.Context) {
 		return
 	}
 	articleService := article_service.Article{
+		Id:      r.Id,
 		UserId:  r.UserId,
 		CateId:  r.CateId,
 		Title:   r.Title,
 		Thumb:   r.Thumb,
 		Content: r.Content,
 	}
-	if errNo := articleService.Add(); errNo != nil {
+	if errNo := articleService.Edit(); errNo != nil {
 		SendResponse(c, errNo, nil)
 		return
 	}

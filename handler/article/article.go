@@ -1,32 +1,41 @@
 package article
 
 type CreateRequest struct {
-	Uid     uint64   `json:"uid"`
-	CateId  uint64   `json:"cate_id"`
-	Title   string   `json:"title"`
+	UserId  uint64   `json:"userId" binding:"required"`
+	CateId  uint64   `json:"cateId" binding:"required"`
+	Title   string   `json:"title" binding:"required"`
 	Content string   `json:"content"`
-	Images  []string `json:"images"`
+	Thumb   []string `json:"thumb"`
 }
 
-type CreateResponse struct {
-	Id        uint64   `json:"id"`
-	Uid       uint64   `json:"uid"`
-	CateId    uint64   `json:"cate_id"`
-	Title     string   `json:"title"`
-	Content   string   `json:"content"`
-	Images    []string `json:"images"`
-	Author    Author   `json:"author"`
-	CreatedAt string   `json:"created_at"`
-	UpdatedAt string   `json:"updated_at"`
+type UpdateRequest struct {
+	Id      uint64   `json:"articleId" binding:"required"`
+	UserId  uint64   `json:"userId" binding:"required"`
+	CateId  uint64   `json:"cateId" binding:"required"`
+	Title   string   `json:"title" binding:"required"`
+	Content string   `json:"content"`
+	Thumb   []string `json:"thumb"`
+}
+
+type GetRequest struct {
+	Id uint64 `form:"id" binding:"exists"`
+}
+
+type GetResponse struct {
+	Id      uint64   `json:"articleId"`
+	CateId  uint64   `json:"cateId"`
+	Title   string   `json:"title"`
+	Content string   `json:"content"`
+	Thumb   []string `json:"thumb"`
 }
 
 type ListRequest struct {
-	CateId uint64 `form:"cate_id"`
+	Title  string `form:"title"`
+	CateId uint64 `form:"cateId"`
 	Page   uint64 `form:"page"`
 	Limit  uint64 `form:"limit"`
 }
 
-type Author struct {
-	Id       uint64 `json:"id"`
-	Username string `json:"username"`
+type DeleteRequest struct {
+	Id uint64 `form:"id" binding:"exists"`
 }
