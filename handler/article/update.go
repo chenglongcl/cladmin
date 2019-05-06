@@ -19,12 +19,13 @@ func Update(c *gin.Context) {
 		return
 	}
 	articleService := article_service.Article{
-		Id:      r.Id,
-		UserId:  r.UserId,
-		CateId:  r.CateId,
-		Title:   r.Title,
-		Thumb:   r.Thumb,
-		Content: r.Content,
+		Id:          r.Id,
+		UserId:      r.UserId,
+		CateId:      r.CateId,
+		Title:       r.Title,
+		Thumb:       r.Thumb,
+		Content:     r.Content,
+		ReleaseTime: r.ReleaseTime,
 	}
 	if errNo := articleService.Edit(); errNo != nil {
 		SendResponse(c, errNo, nil)

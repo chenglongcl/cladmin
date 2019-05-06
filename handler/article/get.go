@@ -30,10 +30,11 @@ func Get(c *gin.Context) {
 	var thumb []string
 	jsoniter.UnmarshalFromString(article.Thumb, &thumb)
 	SendResponse(c, nil, GetResponse{
-		Id:      article.Id,
-		CateId:  article.CateId,
-		Title:   article.Title,
-		Content: article.Content,
-		Thumb:   thumb,
+		Id:          article.Id,
+		CateId:      article.CateId,
+		Title:       article.Title,
+		Content:     article.Content,
+		Thumb:       article.Thumb,
+		ReleaseTime: article.ReleaseTime,
 	})
 }

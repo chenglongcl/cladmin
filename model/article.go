@@ -8,20 +8,21 @@ import (
 
 type Article struct {
 	BaseModel
-	UserId  uint64 `gorm:"column:user_id"`
-	CateId  uint64 `gorm:"column:cate_id"`
-	Title   string `gorm:"column:title;"`
-	Content string `gorm:"column:content;type:text"`
-	Thumb   string `gorm:"column:thumb;type:text"`
+	UserId      uint64 `gorm:"column:user_id"`
+	CateId      uint64 `gorm:"column:cate_id"`
+	Title       string `gorm:"column:title"`
+	Content     string `gorm:"column:content;type:text"`
+	Thumb       string `gorm:"column:thumb"`
+	ReleaseTime string `gorm:"column:release_time"`
 }
 
 type ArticleInfo struct {
-	Id         uint64   `json:"articleId"`
-	UserId     uint64   `json:"userId"`
-	CateId     uint64   `json:"cateId"`
-	Title      string   `json:"title"`
-	Thumb      []string `json:"thumb"`
-	CreateTime string   `json:"createTime"`
+	Id          uint64 `json:"articleId"`
+	UserId      uint64 `json:"userId"`
+	CateId      uint64 `json:"cateId"`
+	Title       string `json:"title"`
+	Thumb       string `json:"thumb"`
+	ReleaseTime string `json:"releaseTime"`
 }
 
 type ArticleList struct {

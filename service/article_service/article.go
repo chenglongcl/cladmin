@@ -4,27 +4,28 @@ import (
 	"cladmin/model"
 	"cladmin/pkg/errno"
 	"cladmin/util"
-	"github.com/json-iterator/go"
 	"sync"
+	"time"
 )
 
 type Article struct {
-	Id      uint64
-	UserId  uint64
-	CateId  uint64
-	Title   string
-	Thumb   []string
-	Content string
+	Id          uint64
+	UserId      uint64
+	CateId      uint64
+	Title       string
+	Thumb       string
+	Content     string
+	ReleaseTime string
 }
 
 func (a *Article) Add() *errno.Errno {
-	thumb, _ := jsoniter.MarshalToString(a.Thumb)
 	data := map[string]interface{}{
-		"user_id": a.UserId,
-		"cate_id": a.CateId,
-		"title":   a.Title,
-		"thumb":   thumb,
-		"content": a.Content,
+		"user_id":      a.UserId,
+		"cate_id":      a.CateId,
+		"title":        a.Title,
+		"thumb":        a.Thumb,
+		"content":      a.Content,
+		"release_time": time.Now().Format("2006-01-02 15:03:04"),
 	}
 	if err := model.AddArticle(data); err != nil {
 		return errno.ErrDatabase
@@ -33,14 +34,14 @@ func (a *Article) Add() *errno.Errno {
 }
 
 func (a *Article) Edit() *errno.Errno {
-	thumb, _ := jsoniter.MarshalToString(a.Thumb)
 	data := map[string]interface{}{
-		"id":      a.Id,
-		"user_id": a.UserId,
-		"cate_id": a.CateId,
-		"title":   a.Title,
-		"thumb":   thumb,
-		"content": a.Content,
+		"id":           a.Id,
+		"user_id":      a.UserId,
+		"cate_id":      a.CateId,
+		"title":        a.Title,
+		"thumb":        a.Thumb,
+		"content":      a.Content,
+		"release_time": a.ReleaseTime,
 	}
 	if err := model.EditArticle(data); err != nil {
 		return errno.ErrDatabase
@@ -87,15 +88,13 @@ func (a *Article) GetList(ps util.PageSetting) ([]*model.ArticleInfo, uint64, *e
 			defer wg.Done()
 			ArticleList.Lock.Lock()
 			defer ArticleList.Lock.Unlock()
-			var thumb []string
-			jsoniter.UnmarshalFromString(article.Thumb, &thumb)
 			ArticleList.IdMap[article.Id] = &model.ArticleInfo{
-				Id:         article.Id,
-				UserId:     article.UserId,
-				CateId:     article.CateId,
-				Title:      article.Title,
-				Thumb:      thumb,
-				CreateTime: article.CreatedAt.Format("2006-01-02 15:04:05"),
+				Id:          article.Id,
+				UserId:      article.UserId,
+				CateId:      article.CateId,
+				Title:       article.Title,
+				Thumb:       article.Thumb,
+				ReleaseTime: article.ReleaseTime,
 			}
 		}(article)
 	}
