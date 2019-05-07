@@ -39,9 +39,10 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 		apiV1.POST("/users/create", user.Create)
 		apiV1.PUT("/users/update", user.Update)
 		apiV1.GET("/users/get", user.Get)
-		apiV1.GET("/users/personal", user.GetPersonalInfo)
 		apiV1.GET("/users/list", user.List)
 		apiV1.POST("/users/delete", user.Delete)
+		apiV1.GET("/users/personal", user.GetPersonalInfo)
+		apiV1.PUT("/users/updatePersonal", user.UpdatePersonal)
 
 		apiV1.POST("/roles/create", role.Create)
 		apiV1.GET("/roles/get", role.Get)
@@ -63,6 +64,7 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 
 		apiV1.PUT("/oss/saveConfig", oss.SaveConfing)
 		apiV1.POST("/oss/upload", oss.Upload)
+		apiV1.POST("/upload", upload.Upload)
 
 		apiV1.POST("/categories/create", category.Create)
 		apiV1.PUT("/categories/update", category.Update)
@@ -74,26 +76,8 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 		apiV1.PUT("/articles/update", article.Update)
 		apiV1.GET("/articles/get", article.Get)
 		apiV1.GET("/articles/list", article.List)
-		apiV1.DELETE("/articles/delete", article.Delete)
+		apiV1.POST("/articles/delete", article.Delete)
 	}
-	//user
-	/*userRouter := g.Group("/v1/user")
-	{
-		// Need auth
-		userRouter.GET("", middleware.AuthMiddleware(), user.Get)
-		userRouter.PUT("", middleware.AuthMiddleware(), user.Update)
-		//No Need auth
-		userRouter.POST("", user.Create)
-		userRouter.DELETE("/:id", user.Delete)
-		userRouter.GET("/index", user.List)
-	}*/
-	//article
-	/*articleRouter := g.Group("/v1/article")
-	{
-		articleRouter.POST("", article.Create)
-		articleRouter.GET("/:id", article.Get)
-		articleRouter.GET("", article.List)
-	}*/
 	//upload
 	uploadRouter := g.Group("/v1/upload")
 	{

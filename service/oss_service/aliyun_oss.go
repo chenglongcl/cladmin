@@ -71,7 +71,7 @@ func (o *Oss) PutObjectWithByte(file multipart.File, header *multipart.FileHeade
 }
 
 //直传签名
-func (o *Oss) WebUpload() (*PolicyToken, *errno.Errno) {
+func (o *Oss) WebUploadSign() (*PolicyToken, *errno.Errno) {
 	accessKeyId := o.AliYunOssClient.Config.AccessKeyID
 	accessKeySecret := o.AliYunOssClient.Config.AccessKeySecret
 	ossConfig := make(map[string]interface{}, 0)

@@ -4,21 +4,44 @@ import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/service/article_service"
+	"cladmin/util"
 	"github.com/gin-gonic/gin"
+	"sync"
 )
 
 func Delete(c *gin.Context) {
 	var r DeleteRequest
-	if err := c.BindQuery(&r); err != nil {
+	if err := c.Bind(&r); err != nil {
 		SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	articleService := article_service.Article{
-		Id: r.Id,
-	}
-	if errNo := articleService.Delete(); errNo != nil {
-		SendResponse(c, errNo, nil)
+	if err := util.Validate(&r); err != nil {
+		SendResponse(c, errno.ErrValidation, nil)
 		return
 	}
-	SendResponse(c, nil, nil)
+	finished := make(chan bool, 1)
+	errorChanel := make(chan *errno.Errno, 1)
+	wg := sync.WaitGroup{}
+	for _, id := range r.Ids {
+		wg.Add(1)
+		go func(id uint64) {
+			defer wg.Done()
+			articleService := article_service.Article{
+				Id: id,
+			}
+			if errNo := articleService.Delete(); errNo != nil {
+				errorChanel <- errNo
+			}
+		}(id)
+	}
+	go func() {
+		wg.Wait()
+		close(finished)
+	}()
+	select {
+	case errNo := <-errorChanel:
+		SendResponse(c, errNo, nil)
+	case <-finished:
+		SendResponse(c, nil, nil)
+	}
 }

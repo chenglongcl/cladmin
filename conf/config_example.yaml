@@ -2,6 +2,7 @@ runmode: debug                 # 开发模式, debug, release, test
 addr: :8080                  # HTTP绑定端口
 name: cladmin              # API Server的名字
 url: http://127.0.0.1:8080   # pingServer函数请求的API服务器的ip:port
+file_domain: http://127.0.0.1:8080 # 静态文件域名
 max_ping_count: 10           # pingServer函数try的次数
 jwt_secret: 4qRnHyI4LGzYrpXdAHBfU0151Dqc8s56
 jwt_exp: 7200 #过期时间单位秒
@@ -33,8 +34,7 @@ redis_conf:
   address: 127.0.0.1:6379
   password:
   prefix: "cladmin:"
-upload_path:
-  images: public/upload/images/
+upload_path: public/upload/
 aliyun_oss: #aliyunOss
   access_key_id:
   access_key_secret:

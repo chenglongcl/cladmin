@@ -109,9 +109,22 @@ func EditUser(data map[string]interface{}) error {
 	DB.Self.Model(&user).Association("Role").Replace(role)
 	delete(data, "role_id")
 	if data["password"].(string) == "" {
-		DB.Self.Model(&user).Omit("password").Update(data)
+		DB.Self.Model(&user).Omit("password").Updates(data)
 	} else {
-		DB.Self.Model(&user).Update(data)
+		DB.Self.Model(&user).Updates(data)
+	}
+	return nil
+}
+
+func EditPersonal(data map[string]interface{}) error {
+	var user User
+	if err := DB.Self.Where("id = ?", data["id"].(uint64)).First(&user).Error; err != nil {
+		return err
+	}
+	if data["password"].(string) == "" {
+		DB.Self.Model(&user).Omit("password").Updates(data)
+	} else {
+		DB.Self.Model(&user).Updates(data)
 	}
 	return nil
 }

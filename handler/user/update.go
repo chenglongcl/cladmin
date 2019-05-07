@@ -37,3 +37,30 @@ func Update(c *gin.Context) {
 	inject.Obj.Common.UserAPI.LoadPolicy(userService.Id)
 	SendResponse(c, nil, nil)
 }
+
+func UpdatePersonal(c *gin.Context) {
+	var r UpdatePersonalRequest
+	if err := c.Bind(&r); err != nil {
+		SendResponse(c, errno.ErrBind, nil)
+		return
+	}
+	if err := util.Validate(&r); err != nil {
+		SendResponse(c, errno.ErrValidation, nil)
+		return
+	}
+	id, exist := c.Get("userId")
+	if !exist {
+		SendResponse(c, errno.ErrNotUserExist, nil)
+		return
+	}
+	userService := user_service.User{
+		Id:       id.(uint64),
+		Password: r.Password,
+	}
+	errNo := userService.EditPersonal()
+	if errNo != nil {
+		SendResponse(c, errNo, nil)
+		return
+	}
+	SendResponse(c, nil, nil)
+}

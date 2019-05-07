@@ -1,6 +1,7 @@
 package upload
 
-type ImageResponse struct {
+type UploadResponse struct {
+	Url      string `json:"url"`
 	Path     string `json:"path"`
-	FileName string `json:"file_name"`
+	FileName string `json:"fileName"`
 }

@@ -1,17 +1,17 @@
 package upload
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
-	"time"
-	"os"
-	"path"
-	"cladmin/util"
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
-	"strings"
+	"cladmin/util"
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	"mime"
+	"os"
+	"path"
 	"regexp"
+	"strings"
+	"time"
 )
 
 func Img(c *gin.Context) {
@@ -43,8 +43,8 @@ func Img(c *gin.Context) {
 		SendResponse(c, errno.ErrUploadFail, nil)
 		return
 	}
-	rep := &ImageResponse{
-		Path:     dst,
+	rep := &UploadResponse{
+		Url:      dst,
 		FileName: saveFileName + fileSuffix,
 	}
 	SendResponse(c, nil, rep)

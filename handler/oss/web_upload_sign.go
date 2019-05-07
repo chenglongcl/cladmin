@@ -8,7 +8,7 @@ import (
 )
 
 func WebUploadSign(c *gin.Context) {
-	sign, errNo := inject.Obj.Common.AliYunOssApi.WebUpload()
+	sign, errNo := inject.Obj.Common.AliYunOssApi.WebUploadSign()
 	if errNo != nil {
 		SendResponse(c, errNo, nil)
 		return

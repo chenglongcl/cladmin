@@ -129,6 +129,22 @@ func (a *User) Edit() *errno.Errno {
 	return nil
 }
 
+func (a *User) EditPersonal() *errno.Errno {
+	var password string
+	if a.Password != "" {
+		password, _ = auth.Encrypt(a.Password)
+	}
+	data := map[string]interface{}{
+		"id":       a.Id,
+		"password": password,
+	}
+	err := model.EditPersonal(data)
+	if err != nil {
+		return errno.ErrDatabase
+	}
+	return nil
+}
+
 func (a *User) Delete() *errno.Errno {
 	err := model.DeleteUser(a.Id)
 	if err != nil {

@@ -6,7 +6,6 @@ import (
 	"cladmin/service/article_service"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
-	"github.com/json-iterator/go"
 )
 
 func Get(c *gin.Context) {
@@ -27,8 +26,6 @@ func Get(c *gin.Context) {
 		SendResponse(c, errNo, nil)
 		return
 	}
-	var thumb []string
-	jsoniter.UnmarshalFromString(article.Thumb, &thumb)
 	SendResponse(c, nil, GetResponse{
 		Id:          article.Id,
 		CateId:      article.CateId,

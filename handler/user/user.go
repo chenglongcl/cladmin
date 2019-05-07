@@ -48,6 +48,10 @@ type UpdateRequest struct {
 	RoleIdList []int64 `json:"roleIdList" binding:"required"`
 }
 
+type UpdatePersonalRequest struct {
+	Password string `json:"password"`
+}
+
 type DeleteRequest struct {
 	Ids []uint64 `json:"ids" binding:"required"`
 }

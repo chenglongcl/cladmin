@@ -121,6 +121,15 @@ func (a *Menu) Edit() ([]uint64, *errno.Errno) {
 
 func (a *Menu) Delete() ([]uint64, *errno.Errno) {
 	roleList := model.EditMenuGetRoles(a.Id)
+	children, err := model.GetMenuList(map[string]interface{}{
+		"parent_id": a.Id,
+	})
+	if err != nil {
+		return nil, errno.ErrDatabase
+	}
+	if len(children) > 0 {
+		return nil, errno.ErrRecordHasChildren
+	}
 	if err := model.DeleteMenu(a.Id); err != nil {
 		return nil, errno.ErrDatabase
 	}

@@ -99,19 +99,6 @@ func GetMenuList(w map[string]interface{}) ([]*Menu, error) {
 	return menuList, nil
 }
 
-func GetMenuListWithCondition(w map[string]interface{}) ([]*Menu, error) {
-	var menuList []*Menu
-	where, values, err := WhereBuild(w)
-	if err != nil {
-		return nil, err
-	}
-	if err := DB.Self.Where(where, values...).Order("parent_id asc,order_num asc").
-		Find(&menuList).Error; err != nil {
-		return nil, err
-	}
-	return menuList, nil
-}
-
 func DeleteMenu(id uint64) error {
 	var menu Menu
 	if err := DB.Self.Where("id = ?", id).Unscoped().Delete(&menu).Error; err != nil {

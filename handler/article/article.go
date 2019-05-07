@@ -39,5 +39,5 @@ type ListRequest struct {
 }
 
 type DeleteRequest struct {
-	Id uint64 `form:"id" binding:"exists"`
+	Ids []uint64 `form:"ids" binding:"required"`
 }

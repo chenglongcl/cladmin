@@ -36,11 +36,12 @@ func (a *Article) TableName() string {
 
 func AddArticle(data map[string]interface{}) error {
 	article := Article{
-		UserId:  data["user_id"].(uint64),
-		CateId:  data["cate_id"].(uint64),
-		Title:   data["title"].(string),
-		Content: data["content"].(string),
-		Thumb:   data["thumb"].(string),
+		UserId:      data["user_id"].(uint64),
+		CateId:      data["cate_id"].(uint64),
+		Title:       data["title"].(string),
+		Content:     data["content"].(string),
+		Thumb:       data["thumb"].(string),
+		ReleaseTime: data["release_time"].(string),
 	}
 	if err := DB.Self.Create(&article).Error; err != nil {
 		return err

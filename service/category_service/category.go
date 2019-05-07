@@ -101,6 +101,15 @@ func (a *Category) GetList(w map[string]interface{}) ([]*model.CategoryInfo, *er
 }
 
 func (a *Category) Delete() (*errno.Errno) {
+	children, err := model.GetCategoryList(map[string]interface{}{
+		"parent_id": a.Id,
+	})
+	if err != nil {
+		return errno.ErrDatabase
+	}
+	if len(children) > 0 {
+		return errno.ErrRecordHasChildren
+	}
 	if err := model.DeleteCategory(a.Id); err != nil {
 		return errno.ErrDatabase
 	}
