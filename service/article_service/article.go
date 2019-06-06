@@ -76,7 +76,7 @@ func (a *Article) GetList(ps util.PageSetting) ([]*model.ArticleInfo, uint64, *e
 
 	info := make([]*model.ArticleInfo, 0)
 	wg := sync.WaitGroup{}
-	ArticleList := model.ArticleList{
+	articleList := model.ArticleList{
 		Lock:  new(sync.Mutex),
 		IdMap: make(map[uint64]*model.ArticleInfo, len(articles)),
 	}
@@ -86,9 +86,9 @@ func (a *Article) GetList(ps util.PageSetting) ([]*model.ArticleInfo, uint64, *e
 		wg.Add(1)
 		go func(article *model.Article) {
 			defer wg.Done()
-			ArticleList.Lock.Lock()
-			defer ArticleList.Lock.Unlock()
-			ArticleList.IdMap[article.Id] = &model.ArticleInfo{
+			articleList.Lock.Lock()
+			defer articleList.Lock.Unlock()
+			articleList.IdMap[article.Id] = &model.ArticleInfo{
 				Id:          article.Id,
 				UserId:      article.UserId,
 				CateId:      article.CateId,
@@ -106,7 +106,7 @@ func (a *Article) GetList(ps util.PageSetting) ([]*model.ArticleInfo, uint64, *e
 	case <-finished:
 	}
 	for _, id := range ids {
-		info = append(info, ArticleList.IdMap[id])
+		info = append(info, articleList.IdMap[id])
 	}
 	return info, count, nil
 }

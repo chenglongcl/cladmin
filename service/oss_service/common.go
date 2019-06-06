@@ -11,7 +11,7 @@ type OssConfig struct {
 	AliYunAccessKeySecret string `json:"aliyunAccessKeySecret"`
 	AliYunBucketName      string `json:"aliyunBucketName"`
 	AliYunEndPoint        string `json:"aliyunEndPoint"`
-	OssType               int64  `json:"ossType"`
+	OssType               string `json:"ossType"`
 }
 
 func (a *OssConfig) SaveConfig() *errno.Errno {

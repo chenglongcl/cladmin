@@ -39,5 +39,5 @@ type ListRequest struct {
 }
 
 type DeleteRequest struct {
-	Ids []uint64 `form:"ids" binding:"required"`
+	Ids []uint64 `json:"ids" binding:"required"`
 }

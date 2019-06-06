@@ -3,10 +3,9 @@ package oss
 import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
-	"cladmin/router/middleware/inject"
+	"cladmin/pkg/oss"
 	"cladmin/service/oss_service"
 	"cladmin/util"
-	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,8 +21,10 @@ func SaveConfing(c *gin.Context) {
 		SendResponse(c, errNo, nil)
 		return
 	}
-	inject.Obj.AliYunOssClient, _ = oss.New(ossService.AliYunEndPoint,
-		ossService.AliYunAccessKeyId,
-		ossService.AliYunAccessKeySecret)
+	if ossService.AliYunEndPoint != "" &&
+		ossService.AliYunAccessKeyId != "" &&
+		ossService.AliYunAccessKeySecret != "" {
+		oss.MyOss.ResetAliyun()
+	}
 	SendResponse(c, nil, nil)
 }

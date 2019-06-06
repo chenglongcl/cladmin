@@ -3,7 +3,8 @@ package oss
 import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
-	"cladmin/router/middleware/inject"
+	"cladmin/pkg/oss"
+	"cladmin/service/oss_service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,7 +21,10 @@ func Upload(c *gin.Context) {
 	}
 	switch r.OssName {
 	case "aliYunOss":
-		fileUrl, errNo := inject.Obj.Common.AliYunOssApi.PutObjectWithByte(file, header)
+		aliyunOssService := &oss_service.AliyunOss{
+			Client: oss.MyOss.SelectAliyun(),
+		}
+		fileUrl, errNo := aliyunOssService.PutObjectWithByte(file, header)
 		if errNo != nil {
 			SendResponse(c, errNo, nil)
 			return

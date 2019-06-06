@@ -16,3 +16,4 @@
 /log/*.log
 /public/upload/*
 !/public/upload/index.html
+/cladmin

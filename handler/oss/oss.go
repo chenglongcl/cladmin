@@ -5,7 +5,7 @@ type SaveConfigRequest struct {
 	AliYunAccessKeySecret string `json:"aliyunAccessKeySecret"`
 	AliYunBucketName      string `json:"aliyunBucketName"`
 	AliYunEndPoint        string `json:"aliyunEndPoint"`
-	OssType               int64  `json:"ossType"`
+	OssType               string `json:"ossType"`
 }
 
 type UploadOssRequest struct {

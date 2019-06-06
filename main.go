@@ -3,6 +3,8 @@ package main
 import (
 	"cladmin/config"
 	"cladmin/model"
+	"cladmin/pkg/oss"
+	"cladmin/pkg/redisgo"
 	v "cladmin/pkg/version"
 	"cladmin/router"
 	"cladmin/router/middleware"
@@ -45,10 +47,12 @@ func main() {
 	model.DB.Init()
 	defer model.DB.Close()
 	// init redis
-	model.RD.Init()
+	redisgo.Init()
 	//init Casbin
 	inject.Init()
 	err := inject.LoadCasbinPolicyData()
+	//init oss
+	oss.Init()
 	if err != nil {
 		log.Fatal("Failure to load Casbin policy data:", err)
 	}

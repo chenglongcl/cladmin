@@ -1,14 +1,13 @@
 package token
 
 import (
+	"cladmin/pkg/redisgo"
 	"errors"
 	"fmt"
 	"time"
 
-	"cladmin/model"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/gomodule/redigo/redis"
 	"github.com/spf13/viper"
 )
 
@@ -40,10 +39,7 @@ func secretFunc(secret string) jwt.Keyfunc {
 // Parse validates the token with the specified secret,
 // and returns the context if the token was valid.
 func Parse(tokenString string, secret string, c *gin.Context) (*Context, error) {
-	redisClient := model.RD.Client.Get()
-	defer redisClient.Close()
 	ctx := &Context{}
-
 	// Parse the token.
 	token, err := jwt.Parse(tokenString, secretFunc(secret))
 	// Parse error.
@@ -52,9 +48,8 @@ func Parse(tokenString string, secret string, c *gin.Context) (*Context, error) 
 		// Read the token if it's valid.
 	} else if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		//Check TokenBlackList
-		if exists, _ := redis.Bool(
-			redisClient.Do("HGET", model.RD.Key+"TokenBlackList", tokenString));
-			exists == true {
+		if exists, _ := redisgo.My().HExists("TokenBlackList", tokenString);
+			exists == 1 {
 			return ctx, ErrInBlackList
 		}
 		ctx.ID = uint64(claims["id"].(float64))
@@ -71,8 +66,6 @@ func Parse(tokenString string, secret string, c *gin.Context) (*Context, error) 
 }
 
 func RefreshParse(tokenString string, secret string, c *gin.Context) (*Context, error) {
-	redisClient := model.RD.Client.Get()
-	defer redisClient.Close()
 	ctx := &Context{}
 	// Parse the token.
 	token, err := jwt.Parse(tokenString, secretFunc(secret))
@@ -86,9 +79,8 @@ func RefreshParse(tokenString string, secret string, c *gin.Context) (*Context, 
 			return ctx, ErrRefreshExpired
 		}
 		//Check TokenBlackList
-		if exists, _ := redis.Bool(
-			redisClient.Do("HGET", model.RD.Key+"TokenBlackList", tokenString));
-			exists == true {
+		if exists, _ := redisgo.My().HExists("TokenBlackList", tokenString);
+			exists == 1 {
 			return ctx, ErrInBlackList
 		}
 		ctx.ID = uint64(claims["id"].(float64))
@@ -155,8 +147,6 @@ func Sign(c *gin.Context, ctx Context, secret string) (tokenString string, expir
 // pass it to the Parse function to parsesRefresh the token.
 func ParseRefreshRequest(c *gin.Context) (ctx *Context, err error, tokenString string, expiredAt string,
 	refreshExpiredAt string) {
-	redisClient := model.RD.Client.Get()
-	defer redisClient.Close()
 	header := c.Request.Header.Get("Authorization")
 
 	// Load the jwt secret from config
@@ -176,7 +166,7 @@ func ParseRefreshRequest(c *gin.Context) (ctx *Context, err error, tokenString s
 		return
 	}
 	//Add TokenBlackList
-	redisClient.Do("HSET", model.RD.Key+"TokenBlackList", t, 1)
+	redisgo.My().HSet("TokenBlackList", t, 1)
 	//Refresh Token
 	tokenString, expiredAt, refreshExpiredAt, err = Sign(c, Context{
 		ID:       ctx.ID,

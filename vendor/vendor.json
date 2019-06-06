@@ -69,6 +69,12 @@
 			"revisionTime": "2019-02-12T13:48:39Z"
 		},
 		{
+			"checksumSHA1": "d3o60xgHtUdWMUolEV6P1k5NMeM=",
+			"path": "github.com/chenglongcl/redisgo",
+			"revision": "513e70d48cd3e736aede9ca26e2c2644aa19b1d5",
+			"revisionTime": "2019-05-30T07:42:27Z"
+		},
+		{
 			"checksumSHA1": "+TKtBzv23ywvmmqRiGEjUba4YmI=",
 			"path": "github.com/dgrijalva/jwt-go",
 			"revision": ""

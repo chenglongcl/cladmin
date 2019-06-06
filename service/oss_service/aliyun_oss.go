@@ -32,22 +32,25 @@ type PolicyToken struct {
 	Directory   string `json:"dir"`
 }
 
-type Oss struct {
-	AliYunOssClient *oss.Client `inject:""`
+type AliyunOss struct {
+	Client *oss.Client
 }
 
-func (o *Oss) PutObjectWithByte(file multipart.File, header *multipart.FileHeader) (string, *errno.Errno) {
+func (o *AliyunOss) PutObjectWithByte(file multipart.File, header *multipart.FileHeader) (string, *errno.Errno) {
 	buf := bytes.NewBuffer(nil)
 	if _, err := io.Copy(buf, file); err != nil {
 		return "", nil
 	}
-	ossConfig := make(map[string]interface{}, 0)
+	if o.Client == nil {
+		return "", errno.ErrAliYunOssUploadFail
+	}
+	ossConfig := make(map[string]string, 0)
 	ossConfigStr, _ := model.GetConfigByParamKey("CLOUD_STORAGE_CONFIG_KEY")
 	jsoniter.UnmarshalFromString(ossConfigStr.ParamValue, &ossConfig)
-	bucketName := (ossConfig["aliyunBucketName"]).(string)
+	bucketName := ossConfig["aliyunBucketName"]
 	// 获取存储空间。
-	bucket, err := o.AliYunOssClient.Bucket(bucketName)
-	if err != nil {
+	bucket, err := o.Client.Bucket(bucketName)
+	if err != nil || bucket.BucketName == "" {
 		return "", errno.ErrAliYunBucket
 	}
 	newFileName, _ := util.GenStr(16)
@@ -56,7 +59,7 @@ func (o *Oss) PutObjectWithByte(file multipart.File, header *multipart.FileHeade
 	var fileUrl string
 	finished := make(chan bool, 1)
 	go func() {
-		bucketInfo, _ := o.AliYunOssClient.GetBucketInfo(bucketName)
+		bucketInfo, _ := o.Client.GetBucketInfo(bucketName)
 		fileUrl = "http://" + bucketInfo.BucketInfo.Name + "." +
 			bucketInfo.BucketInfo.ExtranetEndpoint + "/" + objectKey
 		close(finished)
@@ -71,14 +74,14 @@ func (o *Oss) PutObjectWithByte(file multipart.File, header *multipart.FileHeade
 }
 
 //直传签名
-func (o *Oss) WebUploadSign() (*PolicyToken, *errno.Errno) {
-	accessKeyId := o.AliYunOssClient.Config.AccessKeyID
-	accessKeySecret := o.AliYunOssClient.Config.AccessKeySecret
+func (o *AliyunOss) WebUploadSign() (*PolicyToken, *errno.Errno) {
+	accessKeyId := o.Client.Config.AccessKeyID
+	accessKeySecret := o.Client.Config.AccessKeySecret
 	ossConfig := make(map[string]interface{}, 0)
 	ossConfigStr, _ := model.GetConfigByParamKey("CLOUD_STORAGE_CONFIG_KEY")
 	jsoniter.UnmarshalFromString(ossConfigStr.ParamValue, &ossConfig)
 	bucketName := (ossConfig["aliyunBucketName"]).(string)
-	bucketInfo, _ := o.AliYunOssClient.GetBucketInfo(bucketName)
+	bucketInfo, _ := o.Client.GetBucketInfo(bucketName)
 	host := "http://" + bucketInfo.BucketInfo.Name + "." +
 		bucketInfo.BucketInfo.ExtranetEndpoint
 	expireTime := int64(30)
