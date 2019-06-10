@@ -4,7 +4,6 @@ import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/pkg/oss"
-	"cladmin/service/oss_service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,10 +20,7 @@ func Upload(c *gin.Context) {
 	}
 	switch r.OssName {
 	case "aliYunOss":
-		aliyunOssService := &oss_service.AliyunOss{
-			Client: oss.MyOss.SelectAliyun(),
-		}
-		fileUrl, errNo := aliyunOssService.PutObjectWithByte(file, header)
+		fileUrl, errNo := oss.SelectClient("ali").UpLoad(file, header)
 		if errNo != nil {
 			SendResponse(c, errNo, nil)
 			return

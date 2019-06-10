@@ -24,7 +24,7 @@ func SaveConfing(c *gin.Context) {
 	if ossService.AliYunEndPoint != "" &&
 		ossService.AliYunAccessKeyId != "" &&
 		ossService.AliYunAccessKeySecret != "" {
-		oss.MyOss.ResetAliyun()
+		oss.SelectClient("ali").ResetClient()
 	}
 	SendResponse(c, nil, nil)
 }

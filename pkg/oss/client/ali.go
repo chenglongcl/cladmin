@@ -1,4 +1,4 @@
-package oss_service
+package client
 
 import (
 	"bytes"
@@ -32,11 +32,34 @@ type PolicyToken struct {
 	Directory   string `json:"dir"`
 }
 
-type AliyunOss struct {
+var ali *Ali
+
+type Ali struct {
 	Client *oss.Client
 }
 
-func (o *AliyunOss) PutObjectWithByte(file multipart.File, header *multipart.FileHeader) (string, *errno.Errno) {
+func InitAliClient() {
+	var client *oss.Client
+	aliConfig := make(map[string]string, 0)
+	aliConfigStr, _ := model.GetConfigByParamKey("CLOUD_STORAGE_CONFIG_KEY")
+	jsoniter.UnmarshalFromString(aliConfigStr.ParamValue, &aliConfig)
+	if aliConfig["aliyunEndPoint"] != "" &&
+		aliConfig["aliyunAccessKeyId"] != "" &&
+		aliConfig["aliyunAccessKeySecret"] != "" {
+		client, _ = oss.New(aliConfig["aliyunEndPoint"],
+			aliConfig["aliyunAccessKeyId"],
+			aliConfig["aliyunAccessKeySecret"])
+	}
+	ali = &Ali{
+		Client: client,
+	}
+}
+
+func DefaultAliClient() *Ali {
+	return ali
+}
+
+func (o *Ali) UpLoad(file multipart.File, header *multipart.FileHeader) (string, *errno.Errno) {
 	buf := bytes.NewBuffer(nil)
 	if _, err := io.Copy(buf, file); err != nil {
 		return "", nil
@@ -73,8 +96,24 @@ func (o *AliyunOss) PutObjectWithByte(file multipart.File, header *multipart.Fil
 	return fileUrl, nil
 }
 
-//直传签名
-func (o *AliyunOss) WebUploadSign() (*PolicyToken, *errno.Errno) {
+func (o *Ali) ResetClient() bool {
+	var client *oss.Client
+	aliConfig := make(map[string]string, 0)
+	aliConfigStr, _ := model.GetConfigByParamKey("CLOUD_STORAGE_CONFIG_KEY")
+	jsoniter.UnmarshalFromString(aliConfigStr.ParamValue, &aliConfig)
+	if aliConfig["aliyunEndPoint"] != "" &&
+		aliConfig["aliyunAccessKeyId"] != "" &&
+		aliConfig["aliyunAccessKeySecret"] != "" {
+		client, _ = oss.New(aliConfig["aliyunEndPoint"],
+			aliConfig["aliyunAccessKeyId"],
+			aliConfig["aliyunAccessKeySecret"])
+		o.Client = client
+		return true
+	}
+	return false
+}
+
+func (o *Ali) WebUploadSign() (*PolicyToken, *errno.Errno) {
 	accessKeyId := o.Client.Config.AccessKeyID
 	accessKeySecret := o.Client.Config.AccessKeySecret
 	ossConfig := make(map[string]interface{}, 0)
