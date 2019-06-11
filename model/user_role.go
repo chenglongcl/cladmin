@@ -14,5 +14,5 @@ func (m *UserRole) TableName() string {
 
 func DeleteUserRoleByRoleId(id uint64) error {
 	var userRole UserRole
-	return DB.Self.Unscoped().Where("role_id = ?", id).Delete(&userRole).Error
+	return SelectDB("self").Unscoped().Where("role_id = ?", id).Delete(&userRole).Error
 }

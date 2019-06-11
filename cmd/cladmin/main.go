@@ -44,8 +44,8 @@ func main() {
 		panic(err)
 	}
 	// init db
-	model.DB.Init()
-	defer model.DB.Close()
+	model.Init()
+	defer model.Close()
 	// init redis
 	redisgo.Init()
 	//init Casbin

@@ -43,7 +43,7 @@ func AddArticle(data map[string]interface{}) error {
 		Thumb:       data["thumb"].(string),
 		ReleaseTime: data["release_time"].(string),
 	}
-	if err := DB.Self.Create(&article).Error; err != nil {
+	if err := SelectDB("self").Create(&article).Error; err != nil {
 		return err
 	}
 	return nil
@@ -51,7 +51,7 @@ func AddArticle(data map[string]interface{}) error {
 
 func EditArticle(data map[string]interface{}) error {
 	var article Article
-	if err := DB.Self.Model(&article).Updates(data).Error; err != nil {
+	if err := SelectDB("self").Model(&article).Updates(data).Error; err != nil {
 		return err
 	}
 	return nil
@@ -59,7 +59,7 @@ func EditArticle(data map[string]interface{}) error {
 
 func GetArticle(id uint64) (*Article, error) {
 	var article Article
-	err := DB.Self.Where("id = ?", id).First(&article).Error
+	err := SelectDB("self").Where("id = ?", id).First(&article).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -70,10 +70,10 @@ func GetArticleList(w map[string]interface{}, offset, limit uint64) ([]*Article,
 	articles := make([]*Article, 0)
 	var count uint64
 	where, values, _ := WhereBuild(w)
-	if err := DB.Self.Model(&Article{}).Where(where, values...).Count(&count).Error; err != nil {
+	if err := SelectDB("self").Model(&Article{}).Where(where, values...).Count(&count).Error; err != nil {
 		return articles, count, err
 	}
-	if err := DB.Self.Model(&Article{}).Where(where, values...).Offset(offset).Limit(limit).Order("id desc").
+	if err := SelectDB("self").Model(&Article{}).Where(where, values...).Offset(offset).Limit(limit).Order("id desc").
 		Find(&articles).Error;
 		err != nil {
 		return articles, count, err
@@ -83,7 +83,7 @@ func GetArticleList(w map[string]interface{}, offset, limit uint64) ([]*Article,
 
 func DeleteArticle(id uint64) error {
 	var article Article
-	if err := DB.Self.Where("id = ?", id).Delete(&article).Error; err != nil {
+	if err := SelectDB("self").Where("id = ?", id).Delete(&article).Error; err != nil {
 		return err
 	}
 	return nil

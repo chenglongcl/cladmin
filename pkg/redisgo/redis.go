@@ -7,11 +7,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-var Redis *redisgo.Cacher
+var redis *redisgo.Cacher
 
 func Init() error {
 	var err error
-	Redis, err = redisgo.New(
+	redis, err = redisgo.New(
 		redisgo.Options{
 			Network:   viper.GetString("redis_conf.network"),
 			Addr:      viper.GetString("redis_conf.address"),
@@ -29,5 +29,5 @@ func Init() error {
 }
 
 func My() *redisgo.Cacher {
-	return Redis
+	return redis
 }

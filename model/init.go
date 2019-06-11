@@ -14,7 +14,7 @@ type Database struct {
 	Docker *gorm.DB
 }
 
-var DB *Database
+var database *Database
 
 func openDB(username, password, addr, name string) *gorm.DB {
 	config := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=%t&loc=%s",
@@ -39,37 +39,34 @@ func setupDB(db *gorm.DB) {
 	db.DB().SetMaxIdleConns(0) // 用于设置闲置的连接数.设置闲置的连接数则当开启的一个连接使用完成后可以放在池里等候下一次使用。
 }
 
-func InitSelfDB() *gorm.DB {
+func initDB(name string) *gorm.DB {
+	if name == "" {
+		return nil
+	}
 	return openDB(
-		viper.GetString("db.username"),
-		viper.GetString("db.password"),
-		viper.GetString("db.addr"),
-		viper.GetString("db.name"),
+		viper.GetString(name+".username"),
+		viper.GetString(name+".password"),
+		viper.GetString(name+".addr"),
+		viper.GetString(name+".name"),
 	)
 }
 
-func GetSelfDB() *gorm.DB {
-	return InitSelfDB()
-}
-func InitDockerDB() *gorm.DB {
-	return openDB(
-		viper.GetString("docker_db.username"),
-		viper.GetString("docker_db.password"),
-		viper.GetString("docker_db.addr"),
-		viper.GetString("docker_db.name"),
-	)
-}
-func GetDockerDB() *gorm.DB {
-	return InitDockerDB()
-}
-func (db *Database) Init() {
-	DB = &Database{
-		Self: GetSelfDB(),
-		//Docker: GetDockerDB(),
+func Init() {
+	database = &Database{
+		Self: initDB("db"),
+		//Docker: InitDB("docker_db"),
 	}
 }
 
-func (db *Database) Close() {
-	DB.Self.Close()
-	//DB.Docker.Close()
+func Close() {
+	database.Self.Close()
+	//database.Docker.Close()
+}
+
+func SelectDB(name string) *gorm.DB {
+	switch name {
+	case "self":
+		return database.Self
+	}
+	return nil
 }

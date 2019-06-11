@@ -36,7 +36,7 @@ func (r *Role) TableName() string {
 
 func CheckRoleById(id uint64) (bool, error) {
 	var role Role
-	err := DB.Self.Select("id").Where("id = ?", id).First(&role).Error
+	err := SelectDB("self").Select("id").Where("id = ?", id).First(&role).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err
 	}
@@ -48,7 +48,7 @@ func CheckRoleById(id uint64) (bool, error) {
 
 func CheckRoleByRoleName(roleName string) (bool, error) {
 	var role Role
-	err := DB.Self.Select("id").Where("role_name = ?", roleName).First(&role).Error
+	err := SelectDB("self").Select("id").Where("role_name = ?", roleName).First(&role).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err
 	}
@@ -60,7 +60,7 @@ func CheckRoleByRoleName(roleName string) (bool, error) {
 
 func CheckRoleByRoleNameId(id uint64, roleName string) (bool, error) {
 	var role Role
-	err := DB.Self.Select("id").Where("role_name = ? AND id != ?", roleName, id).First(&role).Error
+	err := SelectDB("self").Select("id").Where("role_name = ? AND id != ?", roleName, id).First(&role).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err
 	}
@@ -79,8 +79,8 @@ func AddRole(data map[string]interface{}) (id uint64, err error) {
 		MenuIdList:   menuIdListJson,
 	}
 	var menu []Menu
-	DB.Self.Where("id in (?)", data["menu_id_list"].([]int64)).Find(&menu)
-	if err := DB.Self.Create(&role).Association("Menu").Append(menu).Error; err != nil {
+	SelectDB("self").Where("id in (?)", data["menu_id_list"].([]int64)).Find(&menu)
+	if err := SelectDB("self").Create(&role).Association("Menu").Append(menu).Error; err != nil {
 		return 0, err
 	}
 	return role.Id, nil
@@ -91,23 +91,23 @@ func EditRole(data map[string]interface{}) error {
 		role Role
 		menu []Menu
 	)
-	if err := DB.Self.Where("id = ?", data["id"].(uint64)).First(&role).Error; err != nil {
+	if err := SelectDB("self").Where("id = ?", data["id"].(uint64)).First(&role).Error; err != nil {
 		return err
 	}
-	DB.Self.Where("id in (?)", data["menu_id_list"].([]int64)).Find(&menu)
+	SelectDB("self").Where("id in (?)", data["menu_id_list"].([]int64)).Find(&menu)
 	//delete(data, "menu_id_list")
 	//配合前端tree半选状态使用
 	data["menu_id_list"], _ = jsoniter.MarshalToString(data["menu_id_list"])
-	DB.Self.Model(&role).Association("Menu").Replace(&menu)
-	DB.Self.Model(&role).Update(data)
+	SelectDB("self").Model(&role).Association("Menu").Replace(&menu)
+	SelectDB("self").Model(&role).Update(data)
 	return nil
 }
 
 func DeleteRole(id uint64) error {
 	var role Role
-	DB.Self.Where("id = ?", id).Preload("Menu").First(&role)
-	DB.Self.Model(&role).Association("Menu").Delete(role.Menu)
-	if err := DB.Self.Unscoped().Where("id = ?", id).Delete(&role).Error; err != nil {
+	SelectDB("self").Where("id = ?", id).Preload("Menu").First(&role)
+	SelectDB("self").Model(&role).Association("Menu").Delete(role.Menu)
+	if err := SelectDB("self").Unscoped().Where("id = ?", id).Delete(&role).Error; err != nil {
 		return err
 	}
 	go func() {
@@ -121,10 +121,10 @@ func GetRoleList(w map[string]interface{}, offset, limit uint64) ([]*Role, uint6
 	roles := make([]*Role, 0)
 	var count uint64
 	where, values, _ := WhereBuild(w)
-	if err := DB.Self.Model(&Role{}).Where(where, values...).Count(&count).Error; err != nil {
+	if err := SelectDB("self").Model(&Role{}).Where(where, values...).Count(&count).Error; err != nil {
 		return roles, count, err
 	}
-	if err := DB.Self.Model(&Role{}).Where(where, values...).Offset(offset).Limit(limit).Order("id asc").
+	if err := SelectDB("self").Model(&Role{}).Where(where, values...).Offset(offset).Limit(limit).Order("id asc").
 		Find(&roles).Error;
 		err != nil {
 		return roles, count, err
@@ -134,7 +134,7 @@ func GetRoleList(w map[string]interface{}, offset, limit uint64) ([]*Role, uint6
 
 func GetRole(id uint64) (*Role, error) {
 	var role Role
-	err := DB.Self.Preload("Menu").Where("id = ?", id).First(&role).Error
+	err := SelectDB("self").Preload("Menu").Where("id = ?", id).First(&role).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func GetRole(id uint64) (*Role, error) {
 
 func GetRolesAll() ([]*Role, error) {
 	var role []*Role
-	err := DB.Self.Preload("Menu").Find(&role).Error
+	err := SelectDB("self").Preload("Menu").Find(&role).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}

@@ -21,9 +21,10 @@ func List(c *gin.Context) {
 	userService := user_service.User{
 		Username: r.UserName,
 	}
-	info, count, err := userService.GetList(ps)
-	if err != nil {
-		SendResponse(c, err, nil)
+	info, count, errNo := userService.GetList(ps)
+	if errNo != nil {
+		SendResponse(c, errNo, nil)
+		return
 	}
 	SendResponse(c, nil, util.PageUtil(count, ps.Page, ps.Limit, info))
 }

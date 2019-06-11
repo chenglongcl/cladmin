@@ -17,7 +17,7 @@ func (c *Config) TableName() string {
 
 func GetConfigByParamKey(str string) (*Config, error) {
 	var config Config
-	if err := DB.Self.Where("param_key = ?", str).First(&config).Error; err != nil {
+	if err := SelectDB("self").Where("param_key = ?", str).First(&config).Error; err != nil {
 		return nil, err
 	}
 	return &config, nil
@@ -25,5 +25,5 @@ func GetConfigByParamKey(str string) (*Config, error) {
 
 func EditConfig(data map[string]interface{}) error {
 	var config Config
-	return DB.Self.Model(&config).Where("id = ?", data["id"]).Updates(data).Error
+	return SelectDB("self").Model(&config).Where("id = ?", data["id"]).Updates(data).Error
 }

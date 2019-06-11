@@ -14,5 +14,5 @@ func (m *RoleMenu) TableName() string {
 
 func DeleteRoleMenuByMenuId(id uint64) error {
 	var roleMenu RoleMenu
-	return DB.Self.Unscoped().Where("menu_id = ?", id).Delete(&roleMenu).Error
+	return SelectDB("self").Unscoped().Where("menu_id = ?", id).Delete(&roleMenu).Error
 }

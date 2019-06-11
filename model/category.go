@@ -40,7 +40,7 @@ func AddCategory(data map[string]interface{}) error {
 		Icon:     data["icon"].(string),
 		OrderNum: data["order_num"].(int64),
 	}
-	if err := DB.Self.Create(&category).Error; err != nil {
+	if err := SelectDB("self").Create(&category).Error; err != nil {
 		return err
 	}
 	return nil
@@ -48,7 +48,7 @@ func AddCategory(data map[string]interface{}) error {
 
 func EditCategory(data map[string]interface{}) error {
 	var category Category
-	if err := DB.Self.Model(&category).Updates(data).Error; err != nil {
+	if err := SelectDB("self").Model(&category).Updates(data).Error; err != nil {
 		return err
 	}
 	return nil
@@ -56,7 +56,7 @@ func EditCategory(data map[string]interface{}) error {
 
 func GetCategory(id uint64) (*Category, error) {
 	var category Category
-	err := DB.Self.Where("id = ?", id).First(&category).Error
+	err := SelectDB("self").Where("id = ?", id).First(&category).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func GetCategoryList(w map[string]interface{}) ([]*Category, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := DB.Self.Where(where, values...).Order("parent_id asc,order_num asc").
+	if err := SelectDB("self").Where(where, values...).Order("parent_id asc,order_num asc").
 		Find(&categoryList).Error; err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func GetCategoryList(w map[string]interface{}) ([]*Category, error) {
 
 func DeleteCategory(id uint64) error {
 	var category Category
-	if err := DB.Self.Where("id = ?", id).Unscoped().Delete(&category).Error; err != nil {
+	if err := SelectDB("self").Where("id = ?", id).Unscoped().Delete(&category).Error; err != nil {
 		return err
 	}
 	return nil

@@ -43,7 +43,7 @@ func (m *Menu) TableName() string {
 
 func CheckMenuById(id uint64) (bool, error) {
 	var menu Menu
-	err := DB.Self.Select("id").Where("id = ?", id).First(&menu).Error
+	err := SelectDB("self").Select("id").Where("id = ?", id).First(&menu).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err
 	}
@@ -63,7 +63,7 @@ func AddMenu(data map[string]interface{}) error {
 		Icon:     data["icon"].(string),
 		OrderNum: data["order_num"].(int64),
 	}
-	if err := DB.Self.Create(&menu).Error; err != nil {
+	if err := SelectDB("self").Create(&menu).Error; err != nil {
 		return err
 	}
 	return nil
@@ -71,7 +71,7 @@ func AddMenu(data map[string]interface{}) error {
 
 func EditMenu(data map[string]interface{}) error {
 	var menu Menu
-	if err := DB.Self.Model(&menu).Updates(data).Error; err != nil {
+	if err := SelectDB("self").Model(&menu).Updates(data).Error; err != nil {
 		return err
 	}
 	return nil
@@ -79,7 +79,7 @@ func EditMenu(data map[string]interface{}) error {
 
 func GetMenu(id uint64) (*Menu, error) {
 	var menu Menu
-	err := DB.Self.Where("id = ?", id).First(&menu).Error
+	err := SelectDB("self").Where("id = ?", id).First(&menu).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func GetMenuList(w map[string]interface{}) ([]*Menu, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := DB.Self.Where(where, values...).Order("parent_id asc,order_num asc").
+	if err := SelectDB("self").Where(where, values...).Order("parent_id asc,order_num asc").
 		Find(&menuList).Error; err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func GetMenuList(w map[string]interface{}) ([]*Menu, error) {
 
 func DeleteMenu(id uint64) error {
 	var menu Menu
-	if err := DB.Self.Where("id = ?", id).Unscoped().Delete(&menu).Error; err != nil {
+	if err := SelectDB("self").Where("id = ?", id).Unscoped().Delete(&menu).Error; err != nil {
 		return err
 	}
 	go func() {
@@ -116,7 +116,7 @@ func EditMenuGetRoles(id uint64) []uint64 {
 		menu Menu
 		role []Role
 	)
-	DB.Self.Model(&menu).Where("c.id = ?", id).
+	SelectDB("self").Model(&menu).Where("c.id = ?", id).
 		Joins(" left join sys_role_menu b on sys_role.id=b.role_id left join sys_menu c on c.id=b.menu_id").
 		Find(&role)
 	var roleList []uint64
@@ -129,7 +129,7 @@ func EditMenuGetRoles(id uint64) []uint64 {
 //根据用户ID查询菜单
 func GetMenuNavByUserId(userId uint64) ([]*Menu, error) {
 	var menus []*Menu
-	if err := DB.Self.Where("sur.user_id = ?", userId).
+	if err := SelectDB("self").Where("sur.user_id = ?", userId).
 		Joins(" left join sys_role_menu srm on srm.menu_id = sys_menu.id" +
 			" left join sys_role sr on sr.id = srm.role_id" +
 			" left join sys_user_role sur on sur.role_id = sr.id").

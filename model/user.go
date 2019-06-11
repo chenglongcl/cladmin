@@ -39,13 +39,13 @@ func (u *User) TableName() string {
 
 func GetUserByUsername(username string) (*User, error) {
 	u := &User{}
-	d := DB.Self.Where("username = ?", username).First(&u)
+	d := SelectDB("self").Where("username = ?", username).First(&u)
 	return u, d.Error
 }
 
 func CheckUserById(id uint64) (bool, error) {
 	var user User
-	err := DB.Self.Select("id").Where("id = ?", id).First(&user).Error
+	err := SelectDB("self").Select("id").Where("id = ?", id).First(&user).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err
 	}
@@ -57,7 +57,7 @@ func CheckUserById(id uint64) (bool, error) {
 
 func CheckUserByUsername(username string) (bool, error) {
 	var user User
-	err := DB.Self.Select("id").Where("username = ?", username).First(&user).Error
+	err := SelectDB("self").Select("id").Where("username = ?", username).First(&user).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err
 	}
@@ -69,7 +69,7 @@ func CheckUserByUsername(username string) (bool, error) {
 
 func CheckUserUsernameId(username string, id uint64) (bool, error) {
 	var user User
-	err := DB.Self.Where("username = ? AND id != ?", username, id).First(&user).Error
+	err := SelectDB("self").Where("username = ? AND id != ?", username, id).First(&user).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err
 	}
@@ -90,8 +90,8 @@ func AddUser(data map[string]interface{}) (id uint64, err error) {
 		CreateUserId: data["create_user_id"].(uint64),
 	}
 	var role []Role
-	DB.Self.Where("id in (?)", data["role_id"].([]int64)).Find(&role)
-	if err := DB.Self.Create(&user).Association("Role").Append(role).Error; err != nil {
+	SelectDB("self").Where("id in (?)", data["role_id"].([]int64)).Find(&role)
+	if err := SelectDB("self").Create(&user).Association("Role").Append(role).Error; err != nil {
 		return 0, err
 	}
 	return user.Id, nil
@@ -102,36 +102,36 @@ func EditUser(data map[string]interface{}) error {
 		role []Role
 		user User
 	)
-	DB.Self.Where("id in (?)", data["role_id"].([]int64)).Find(&role)
-	if err := DB.Self.Where("id = ?", data["id"].(uint64)).First(&user).Error; err != nil {
+	SelectDB("self").Where("id in (?)", data["role_id"].([]int64)).Find(&role)
+	if err := SelectDB("self").Where("id = ?", data["id"].(uint64)).First(&user).Error; err != nil {
 		return err
 	}
-	DB.Self.Model(&user).Association("Role").Replace(role)
+	SelectDB("self").Model(&user).Association("Role").Replace(role)
 	delete(data, "role_id")
 	if data["password"].(string) == "" {
-		DB.Self.Model(&user).Omit("password").Updates(data)
+		SelectDB("self").Model(&user).Omit("password").Updates(data)
 	} else {
-		DB.Self.Model(&user).Updates(data)
+		SelectDB("self").Model(&user).Updates(data)
 	}
 	return nil
 }
 
 func EditPersonal(data map[string]interface{}) error {
 	var user User
-	if err := DB.Self.Where("id = ?", data["id"].(uint64)).First(&user).Error; err != nil {
+	if err := SelectDB("self").Where("id = ?", data["id"].(uint64)).First(&user).Error; err != nil {
 		return err
 	}
 	if data["password"].(string) == "" {
-		DB.Self.Model(&user).Omit("password").Updates(data)
+		SelectDB("self").Model(&user).Omit("password").Updates(data)
 	} else {
-		DB.Self.Model(&user).Updates(data)
+		SelectDB("self").Model(&user).Updates(data)
 	}
 	return nil
 }
 
 func GetUser(id uint64) (*User, error) {
 	var user User
-	err := DB.Self.Preload("Role").Where("id = ?", id).First(&user).Error
+	err := SelectDB("self").Preload("Role").Where("id = ?", id).First(&user).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -142,10 +142,10 @@ func GetUserList(w map[string]interface{}, offset, limit uint64) ([]*User, uint6
 	users := make([]*User, 0)
 	var count uint64
 	where, values, _ := WhereBuild(w)
-	if err := DB.Self.Model(&User{}).Where(where, values...).Count(&count).Error; err != nil {
+	if err := SelectDB("self").Model(&User{}).Where(where, values...).Count(&count).Error; err != nil {
 		return users, count, err
 	}
-	if err := DB.Self.Model(&User{}).Where(where, values...).Offset(offset).Limit(limit).Order("id desc").
+	if err := SelectDB("self").Model(&User{}).Where(where, values...).Offset(offset).Limit(limit).Order("id desc").
 		Find(&users).Error; err != nil {
 		return users, count, err
 	}
@@ -154,7 +154,7 @@ func GetUserList(w map[string]interface{}, offset, limit uint64) ([]*User, uint6
 
 func GetUsersAll() ([]*User, error) {
 	var user []*User
-	err := DB.Self.Preload("Role").Find(&user).Error
+	err := SelectDB("self").Preload("Role").Find(&user).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -163,9 +163,9 @@ func GetUsersAll() ([]*User, error) {
 
 func DeleteUser(id uint64) error {
 	var user User
-	DB.Self.Where("id = ?", id).Preload("Role").First(&user)
-	DB.Self.Model(&user).Association("Role").Delete(user.Role)
-	if err := DB.Self.Unscoped().Where("id = ?", id).Delete(&user).Error; err != nil {
+	SelectDB("self").Where("id = ?", id).Preload("Role").First(&user)
+	SelectDB("self").Model(&user).Association("Role").Delete(user.Role)
+	if err := SelectDB("self").Unscoped().Where("id = ?", id).Delete(&user).Error; err != nil {
 		return err
 	}
 	return nil

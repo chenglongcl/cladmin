@@ -36,7 +36,7 @@ func AddPublicNotice(data map[string]interface{}) error {
 		Tag:     data["tag"].(string),
 		Content: data["content"].(string),
 	}
-	if err := DB.Self.Create(&publicNotice).Error; err != nil {
+	if err := SelectDB("self").Create(&publicNotice).Error; err != nil {
 		return err
 	}
 	return nil
@@ -44,7 +44,7 @@ func AddPublicNotice(data map[string]interface{}) error {
 
 func EditPublicNotice(data map[string]interface{}) error {
 	var publicNotice PublicNotice
-	if err := DB.Self.Model(&publicNotice).Updates(data).Error; err != nil {
+	if err := SelectDB("self").Model(&publicNotice).Updates(data).Error; err != nil {
 		return err
 	}
 	return nil
@@ -52,7 +52,7 @@ func EditPublicNotice(data map[string]interface{}) error {
 
 func GetPublicNotice(id uint64) (*PublicNotice, error) {
 	var publicNotice PublicNotice
-	err := DB.Self.Where("id = ?", id).First(&publicNotice).Error
+	err := SelectDB("self").Where("id = ?", id).First(&publicNotice).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -63,10 +63,10 @@ func GetPublicNoticeList(w map[string]interface{}, offset, limit uint64) ([]*Pub
 	publicNotices := make([]*PublicNotice, 0)
 	var count uint64
 	where, values, _ := WhereBuild(w)
-	if err := DB.Self.Model(&PublicNotice{}).Where(where, values...).Count(&count).Error; err != nil {
+	if err := SelectDB("self").Model(&PublicNotice{}).Where(where, values...).Count(&count).Error; err != nil {
 		return publicNotices, count, err
 	}
-	if err := DB.Self.Where(where, values...).Offset(offset).Limit(limit).Order("id desc").
+	if err := SelectDB("self").Where(where, values...).Offset(offset).Limit(limit).Order("id desc").
 		Find(&publicNotices).Error; err != nil {
 		return publicNotices, count, err
 	}
@@ -75,7 +75,7 @@ func GetPublicNoticeList(w map[string]interface{}, offset, limit uint64) ([]*Pub
 
 func DeletePublicNotice(id uint64) error {
 	var publicNotice PublicNotice
-	if err := DB.Self.Where("id = ?", id).Delete(&publicNotice).Error; err != nil {
+	if err := SelectDB("self").Where("id = ?", id).Delete(&publicNotice).Error; err != nil {
 		return err
 	}
 	return nil
