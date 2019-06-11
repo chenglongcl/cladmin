@@ -17,7 +17,7 @@
 /public/upload/*
 !/public/upload/index.html
 /cladmin
-# cmd
+
 /cmd/cladmin/conf/config.yaml
 /cmd/cladmin/log/*.log
 /cmd/cladmin/public/upload/*
