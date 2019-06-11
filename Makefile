@@ -1,5 +1,6 @@
 SHELL := /bin/bash
 BASEDIR = $(shell pwd)
+SERVER_BIN = "./cmd/cladmin/cladmin"
 
 # build with verison infos
 versionDir = "cladmin/pkg/version"
@@ -11,14 +12,12 @@ gitTreeState = $(shell if git status|grep -q 'clean';then echo clean; else echo 
 ldflags="-w -X ${versionDir}.gitTag=${gitTag} -X ${versionDir}.buildDate=${buildDate} -X ${versionDir}.gitCommit=${gitCommit} -X ${versionDir}.gitTreeState=${gitTreeState}"
 
 all: gotool
-	@go build -v -ldflags ${ldflags} .
+	@go build -v -ldflags ${ldflags} -o $(SERVER_BIN) ./cmd/cladmin
 clean:
-	rm -f cladmin
+	rm -f $(SERVER_BIN)
 	find . -name "[._]*.s[a-w][a-z]" | xargs -i rm -f {}
 help:
 	@echo "make - compile the source code"
 	@echo "make clean - remove binary file and vim swp files"
 
 .PHONY: clean gotool ca help
-
-
