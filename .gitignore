@@ -23,3 +23,4 @@
 /cmd/cladmin/public/upload/*
 !/cmd/cladmin/public/upload/index.html
 /cmd/cladmin/cladmin
+
