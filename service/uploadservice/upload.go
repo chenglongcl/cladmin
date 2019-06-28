@@ -1,4 +1,4 @@
-package upload_service
+package uploadservice
 
 import (
 	"cladmin/pkg/errno"

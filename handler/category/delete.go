@@ -3,7 +3,7 @@ package category
 import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
-	"cladmin/service/category_service"
+	"cladmin/service/categoryservice"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,7 +13,7 @@ func Delete(c *gin.Context) {
 		SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	categoryService := category_service.Category{
+	categoryService := categoryservice.Category{
 		Id: r.Id,
 	}
 	if errNo := categoryService.Delete(); errNo != nil {

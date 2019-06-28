@@ -1,4 +1,4 @@
-package oss_service
+package ossservice
 
 import (
 	"cladmin/model"

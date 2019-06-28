@@ -3,7 +3,7 @@ package config
 import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
-	"cladmin/service/config_service"
+	"cladmin/service/configservice"
 	"github.com/gin-gonic/gin"
 	"github.com/json-iterator/go"
 )
@@ -14,7 +14,7 @@ func Get(c *gin.Context) {
 		SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	configService := config_service.Config{
+	configService := configservice.Config{
 		ParamKey: r.Key,
 	}
 	config, errNo := configService.GetByParamKey()

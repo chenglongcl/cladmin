@@ -1,4 +1,4 @@
-package public_notice_service
+package bulletinservice
 
 import (
 	"cladmin/model"
@@ -7,47 +7,47 @@ import (
 	"sync"
 )
 
-type PublicNotice struct {
+type Bulletin struct {
 	Id      uint64
 	Title   string
 	Tag     string
 	Content string
 }
 
-func (a *PublicNotice) Add() *errno.Errno {
+func (a *Bulletin) Add() *errno.Errno {
 	data := map[string]interface{}{
 		"title":   a.Title,
 		"tag":     a.Tag,
 		"content": a.Content,
 	}
-	if err := model.AddPublicNotice(data); err != nil {
+	if err := model.AddBulletin(data); err != nil {
 		return errno.ErrDatabase
 	}
 	return nil
 }
 
-func (a *PublicNotice) Edit() *errno.Errno {
+func (a *Bulletin) Edit() *errno.Errno {
 	data := map[string]interface{}{
 		"id":      a.Id,
 		"title":   a.Title,
 		"tag":     a.Tag,
 		"content": a.Content,
 	}
-	if err := model.EditPublicNotice(data); err != nil {
+	if err := model.EditBulletin(data); err != nil {
 		return errno.ErrDatabase
 	}
 	return nil
 }
 
-func (a *PublicNotice) Get() (*model.PublicNotice, *errno.Errno) {
-	publicNotice, err := model.GetPublicNotice(a.Id)
+func (a *Bulletin) Get() (*model.Bulletin, *errno.Errno) {
+	publicNotice, err := model.GetBulletin(a.Id)
 	if err != nil {
 		return nil, errno.ErrDatabase
 	}
 	return publicNotice, nil
 }
 
-func (a *PublicNotice) GetList(ps util.PageSetting) ([]*model.PublicNoticeInfo, uint64, *errno.Errno) {
+func (a *Bulletin) GetList(ps util.PageSetting) ([]*model.BulletinInfo, uint64, *errno.Errno) {
 	w := make(map[string]interface{})
 	if a.Title != "" {
 		w["title like"] = "%" + a.Title + "%"
@@ -55,7 +55,7 @@ func (a *PublicNotice) GetList(ps util.PageSetting) ([]*model.PublicNoticeInfo, 
 	if a.Tag != "" {
 		w["tag"] = a.Tag
 	}
-	publicNotices, count, err := model.GetPublicNoticeList(w, ps.Offset, ps.Limit)
+	publicNotices, count, err := model.GetBulletinList(w, ps.Offset, ps.Limit)
 	if err != nil {
 		return nil, count, errno.ErrDatabase
 	}
@@ -64,18 +64,18 @@ func (a *PublicNotice) GetList(ps util.PageSetting) ([]*model.PublicNoticeInfo, 
 		ids = append(ids, publicNotice.Id)
 	}
 	wg := sync.WaitGroup{}
-	publicNoticesList := model.PublicNoticeList{
+	publicNoticesList := model.BulletinList{
 		Lock:  new(sync.Mutex),
-		IdMap: make(map[uint64]*model.PublicNoticeInfo, len(publicNotices)),
+		IdMap: make(map[uint64]*model.BulletinInfo, len(publicNotices)),
 	}
 	finished := make(chan bool, 1)
 	for _, publicNotice := range publicNotices {
 		wg.Add(1)
-		go func(publicNotice *model.PublicNotice) {
+		go func(publicNotice *model.Bulletin) {
 			defer wg.Done()
 			publicNoticesList.Lock.Lock()
 			defer publicNoticesList.Lock.Unlock()
-			publicNoticesList.IdMap[publicNotice.Id] = &model.PublicNoticeInfo{
+			publicNoticesList.IdMap[publicNotice.Id] = &model.BulletinInfo{
 				Id:         publicNotice.Id,
 				Title:      publicNotice.Title,
 				Tag:        publicNotice.Tag,
@@ -92,15 +92,15 @@ func (a *PublicNotice) GetList(ps util.PageSetting) ([]*model.PublicNoticeInfo, 
 	select {
 	case <-finished:
 	}
-	info := make([]*model.PublicNoticeInfo, 0)
+	info := make([]*model.BulletinInfo, 0)
 	for _, id := range ids {
 		info = append(info, publicNoticesList.IdMap[id])
 	}
 	return info, count, nil
 }
 
-func (a *PublicNotice) Delete() *errno.Errno {
-	if err := model.DeletePublicNotice(a.Id); err != nil {
+func (a *Bulletin) Delete() *errno.Errno {
+	if err := model.DeleteBulletin(a.Id); err != nil {
 		return errno.ErrDatabase
 	}
 	return nil

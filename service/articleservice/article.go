@@ -1,4 +1,4 @@
-package article_service
+package articleservice
 
 import (
 	"cladmin/model"

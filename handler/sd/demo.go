@@ -2,12 +2,12 @@ package sd
 
 import (
 	. "cladmin/handler"
-	"cladmin/service/demo_service"
+	"cladmin/service/demoservice"
 	"github.com/gin-gonic/gin"
 )
 
 func DemoOne(c *gin.Context) {
-	demoService := &demo_service.Demo{}
+	demoService := &demoservice.Demo{}
 	info := demoService.DemoOne()
 	SendResponse(c, nil, info)
 }

@@ -1,4 +1,4 @@
-package category_service
+package categoryservice
 
 import (
 	"cladmin/model"

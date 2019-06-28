@@ -1,4 +1,4 @@
-package menu_service
+package menuservice
 
 import (
 	"cladmin/model"

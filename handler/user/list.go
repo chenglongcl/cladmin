@@ -3,7 +3,7 @@ package user
 import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
-	"cladmin/service/user_service"
+	"cladmin/service/userservice"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +18,7 @@ func List(c *gin.Context) {
 		return
 	}
 	ps.Setting(r.Page, r.Limit)
-	userService := user_service.User{
+	userService := userservice.User{
 		Username: r.UserName,
 	}
 	info, count, errNo := userService.GetList(ps)

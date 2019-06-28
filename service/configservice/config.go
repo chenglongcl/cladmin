@@ -1,4 +1,4 @@
-package config_service
+package configservice
 
 import (
 	"cladmin/model"

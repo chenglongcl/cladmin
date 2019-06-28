@@ -4,7 +4,7 @@ import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/router/middleware/inject"
-	"cladmin/service/user_service"
+	"cladmin/service/userservice"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
 	"sync"
@@ -27,7 +27,7 @@ func Delete(c *gin.Context) {
 		wg.Add(1)
 		go func(id uint64) {
 			defer wg.Done()
-			userService := user_service.User{
+			userService := userservice.User{
 				Id: id,
 			}
 			user, _ := userService.Get()

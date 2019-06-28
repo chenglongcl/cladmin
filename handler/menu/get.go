@@ -3,7 +3,7 @@ package menu
 import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
-	"cladmin/service/menu_service"
+	"cladmin/service/menuservice"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,7 +13,7 @@ func Get(c *gin.Context) {
 		SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	menuService := menu_service.Menu{
+	menuService := menuservice.Menu{
 		Id: r.Id,
 	}
 	menu, errNo := menuService.Get()
@@ -38,7 +38,7 @@ func Get(c *gin.Context) {
 
 func GetMenuNav(c *gin.Context) {
 	userId, _ := c.Get("userId")
-	menuService := menu_service.Menu{}
+	menuService := menuservice.Menu{}
 	list, permissions, errNo := menuService.GetMenuNavByUserId(userId.(uint64))
 	if errNo != nil {
 		SendResponse(c, errNo, nil)

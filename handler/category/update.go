@@ -3,7 +3,7 @@ package category
 import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
-	"cladmin/service/category_service"
+	"cladmin/service/categoryservice"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +18,7 @@ func Update(c *gin.Context) {
 		SendResponse(c, errno.ErrValidation, nil)
 		return
 	}
-	categoryService := category_service.Category{
+	categoryService := categoryservice.Category{
 		Id:       r.Id,
 		ParentId: r.ParentId,
 		Name:     r.Name,

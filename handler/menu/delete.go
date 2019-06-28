@@ -4,7 +4,7 @@ import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/router/middleware/inject"
-	"cladmin/service/menu_service"
+	"cladmin/service/menuservice"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
 )
@@ -19,7 +19,7 @@ func Delete(c *gin.Context) {
 		SendResponse(c, errno.ErrValidation, nil)
 		return
 	}
-	menuService := menu_service.Menu{
+	menuService := menuservice.Menu{
 		Id: r.Id,
 	}
 	roleList, errNo := menuService.Delete()

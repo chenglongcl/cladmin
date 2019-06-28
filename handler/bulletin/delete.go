@@ -1,9 +1,9 @@
-package public_notice
+package bulletin
 
 import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
-	"cladmin/service/public_notice_service"
+	"cladmin/service/bulletinservice"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
 	"sync"
@@ -27,7 +27,7 @@ func Delete(c *gin.Context) {
 		wg.Add(1)
 		go func(id uint64) {
 			defer wg.Done()
-			publicNoticeService := public_notice_service.PublicNotice{
+			publicNoticeService := bulletinservice.Bulletin{
 				Id: id,
 			}
 			if errNo := publicNoticeService.Delete(); errNo != nil {

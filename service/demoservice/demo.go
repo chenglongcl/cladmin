@@ -1,4 +1,4 @@
-package demo_service
+package demoservice
 
 import (
 	"cladmin/model"

@@ -4,7 +4,7 @@ import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/router/middleware/inject"
-	"cladmin/service/menu_service"
+	"cladmin/service/menuservice"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,7 +14,7 @@ func Update(c *gin.Context) {
 		SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	menuService := menu_service.Menu{
+	menuService := menuservice.Menu{
 		Id:       r.Id,
 		ParentId: r.ParentId,
 		Name:     r.Name,

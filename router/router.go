@@ -2,11 +2,11 @@ package router
 
 import (
 	"cladmin/handler/article"
+	"cladmin/handler/bulletin"
 	"cladmin/handler/category"
 	"cladmin/handler/config"
 	"cladmin/handler/menu"
 	"cladmin/handler/oss"
-	"cladmin/handler/public_notice"
 	"cladmin/handler/role"
 	"cladmin/handler/sd"
 	"cladmin/handler/upload"
@@ -79,11 +79,11 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 		apiV1.GET("/articles/list", article.List)
 		apiV1.POST("/articles/delete", article.Delete)
 
-		apiV1.POST("/publicNotices/create", public_notice.Create)
-		apiV1.PUT("/publicNotices/update", public_notice.Update)
-		apiV1.GET("/publicNotices/get", public_notice.Get)
-		apiV1.GET("/publicNotices/list", public_notice.List)
-		apiV1.POST("/publicNotices/delete", public_notice.Delete)
+		apiV1.POST("/bulletin/create", bulletin.Create)
+		apiV1.PUT("/bulletin/update", bulletin.Update)
+		apiV1.GET("/bulletin/get", bulletin.Get)
+		apiV1.GET("/bulletin/list", bulletin.List)
+		apiV1.POST("/bulletin/delete", bulletin.Delete)
 	}
 	//upload
 	uploadRouter := g.Group("/v1/upload")

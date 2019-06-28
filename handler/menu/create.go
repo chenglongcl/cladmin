@@ -3,7 +3,7 @@ package menu
 import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
-	"cladmin/service/menu_service"
+	"cladmin/service/menuservice"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +18,7 @@ func Create(c *gin.Context) {
 		SendResponse(c, errno.ErrValidation, nil)
 		return
 	}
-	menuService := menu_service.Menu{
+	menuService := menuservice.Menu{
 		ParentId: r.ParentId,
 		Name:     r.Name,
 		Url:      r.Url,

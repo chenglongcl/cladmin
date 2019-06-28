@@ -3,7 +3,7 @@ package article
 import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
-	"cladmin/service/article_service"
+	"cladmin/service/articleservice"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
 	"sync"
@@ -26,7 +26,7 @@ func Delete(c *gin.Context) {
 		wg.Add(1)
 		go func(id uint64) {
 			defer wg.Done()
-			articleService := article_service.Article{
+			articleService := articleservice.Article{
 				Id: id,
 			}
 			if errNo := articleService.Delete(); errNo != nil {

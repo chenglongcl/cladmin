@@ -4,7 +4,7 @@ import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/router/middleware/inject"
-	"cladmin/service/role_service"
+	"cladmin/service/roleservice"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
 )
@@ -19,7 +19,7 @@ func Update(c *gin.Context) {
 		SendResponse(c, errno.ErrValidation, nil)
 		return
 	}
-	roleService := role_service.Role{
+	roleService := roleservice.Role{
 		Id:         r.Id,
 		RoleName:   r.RoleName,
 		Remark:     r.Remark,

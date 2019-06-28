@@ -2,12 +2,12 @@ package menu
 
 import (
 	. "cladmin/handler"
-	"cladmin/service/menu_service"
+	"cladmin/service/menuservice"
 	"github.com/gin-gonic/gin"
 )
 
 func List(c *gin.Context) {
-	menuService := menu_service.Menu{}
+	menuService := menuservice.Menu{}
 	w := map[string]interface{}{}
 	info, errNo := menuService.GetList(w)
 	if errNo != nil {
@@ -19,7 +19,7 @@ func List(c *gin.Context) {
 
 //上级菜单type 为1,2类型
 func Select(c *gin.Context) {
-	menuService := menu_service.Menu{}
+	menuService := menuservice.Menu{}
 	w := map[string]interface{}{
 		"type !=": 2,
 	}

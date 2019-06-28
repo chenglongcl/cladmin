@@ -3,7 +3,7 @@ package role
 import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
-	"cladmin/service/role_service"
+	"cladmin/service/roleservice"
 	"github.com/gin-gonic/gin"
 	"github.com/json-iterator/go"
 )
@@ -14,7 +14,7 @@ func Get(c *gin.Context) {
 		SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	roleService := role_service.Role{
+	roleService := roleservice.Role{
 		Id: r.Id,
 	}
 	role, errNo := roleService.Get()

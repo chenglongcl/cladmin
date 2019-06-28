@@ -3,7 +3,7 @@ package upload
 import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
-	"cladmin/service/upload_service"
+	"cladmin/service/uploadservice"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 )
@@ -14,7 +14,7 @@ func Upload(c *gin.Context) {
 		SendResponse(c, errno.ErrUploadFile, nil)
 		return
 	}
-	uploadService := upload_service.Upload{}
+	uploadService := uploadservice.Upload{}
 	path, fileName, errNo := uploadService.UploadFile(file)
 	if errNo != nil {
 		SendResponse(c, errNo, nil)

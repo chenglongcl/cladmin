@@ -3,7 +3,7 @@ package article
 import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
-	"cladmin/service/article_service"
+	"cladmin/service/articleservice"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +18,7 @@ func Update(c *gin.Context) {
 		SendResponse(c, errno.ErrValidation, nil)
 		return
 	}
-	articleService := article_service.Article{
+	articleService := articleservice.Article{
 		Id:          r.Id,
 		UserId:      r.UserId,
 		CateId:      r.CateId,

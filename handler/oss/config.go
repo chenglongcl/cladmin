@@ -4,7 +4,7 @@ import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/pkg/oss"
-	"cladmin/service/oss_service"
+	"cladmin/service/ossservice"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +15,7 @@ func SaveConfing(c *gin.Context) {
 		SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	ossService := oss_service.OssConfig{}
+	ossService := ossservice.OssConfig{}
 	util.StructCopy(&ossService, &r)
 	if errNo := ossService.SaveConfig(); errNo != nil {
 		SendResponse(c, errNo, nil)

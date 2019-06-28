@@ -1,4 +1,4 @@
-package public_notice
+package bulletin
 
 type CreateRequest struct {
 	Title   string `json:"title" binding:"required"`

@@ -4,7 +4,7 @@ import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/router/middleware/inject"
-	"cladmin/service/user_service"
+	"cladmin/service/userservice"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
 )
@@ -20,7 +20,7 @@ func Update(c *gin.Context) {
 		SendResponse(c, errno.ErrValidation, nil)
 		return
 	}
-	userService := user_service.User{
+	userService := userservice.User{
 		Id:         r.Id,
 		Username:   r.Username,
 		Password:   r.Password,
@@ -53,7 +53,7 @@ func UpdatePersonal(c *gin.Context) {
 		SendResponse(c, errno.ErrNotUserExist, nil)
 		return
 	}
-	userService := user_service.User{
+	userService := userservice.User{
 		Id:       id.(uint64),
 		Password: r.Password,
 	}
