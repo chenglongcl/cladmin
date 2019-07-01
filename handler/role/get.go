@@ -22,14 +22,14 @@ func Get(c *gin.Context) {
 		SendResponse(c, errNo, nil)
 		return
 	}
-	menuIdList := make([]int64, 0)
-	jsoniter.UnmarshalFromString(role.MenuIDList, &menuIdList)
+	menuIDList := make([]int64, 0)
+	jsoniter.UnmarshalFromString(role.MenuIDList, &menuIDList)
 	SendResponse(c, nil, GetResponse{
 		ID:           role.ID,
 		RoleName:     role.RoleName,
 		Remark:       role.Remark,
 		CreateUserID: role.CreateUserID,
-		MenuIDList:   menuIdList,
+		MenuIDList:   menuIDList,
 		CreateTime:   role.CreatedAt.Format("2006-01-02 15:04:05"),
 	})
 }

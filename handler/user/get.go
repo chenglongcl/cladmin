@@ -21,9 +21,9 @@ func Get(c *gin.Context) {
 		SendResponse(c, errNo, nil)
 		return
 	}
-	roleIdList := make([]uint64, len(user.Role))
+	roleIDList := make([]uint64, len(user.Role))
 	for _, role := range user.Role {
-		roleIdList = append(roleIdList, role.ID)
+		roleIDList = append(roleIDList, role.ID)
 	}
 	SendResponse(c, nil, GetResponse{
 		UserID:       user.ID,
@@ -33,7 +33,7 @@ func Get(c *gin.Context) {
 		Email:        user.Email,
 		Mobile:       user.Mobile,
 		Status:       user.Status,
-		RoleIDList:   roleIdList,
+		RoleIDList:   roleIDList,
 	})
 }
 

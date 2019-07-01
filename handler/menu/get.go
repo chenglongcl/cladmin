@@ -37,9 +37,9 @@ func Get(c *gin.Context) {
 }
 
 func GetMenuNav(c *gin.Context) {
-	userId, _ := c.Get("userID")
+	userID, _ := c.Get("userID")
 	menuService := menuservice.Menu{}
-	list, permissions, errNo := menuService.GetMenuNavByUserId(userId.(uint64))
+	list, permissions, errNo := menuService.GetMenuNavByUserID(userID.(uint64))
 	if errNo != nil {
 		SendResponse(c, errNo, nil)
 		return

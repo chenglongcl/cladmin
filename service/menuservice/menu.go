@@ -69,7 +69,7 @@ func (a *Menu) GetList(w map[string]interface{}) ([]*model.MenuInfo, *errno.Errn
 			menuList.Lock.Lock()
 			defer menuList.Lock.Unlock()
 			menuList.IdMap[menu.ID] = &model.MenuInfo{
-				Id:         menu.ID,
+				ID:         menu.ID,
 				ParentID:   menu.ParentID,
 				ParentName: "",
 				Name:       menu.Name,
@@ -136,17 +136,17 @@ func (a *Menu) Delete() ([]uint64, *errno.Errno) {
 	return roleList, nil
 }
 
-func (a *Menu) GetMenuNavByUserId(userId uint64) ([]*MenuTree, []string, *errno.Errno) {
+func (a *Menu) GetMenuNavByUserID(userID uint64) ([]*MenuTree, []string, *errno.Errno) {
 	var (
 		menus   []*model.Menu
 		modeErr error
 	)
-	if userId == 1 {
+	if userID == 1 {
 		//admin
 		w := map[string]interface{}{}
 		menus, modeErr = model.GetMenuList(w)
 	} else {
-		menus, modeErr = model.GetMenuNavByUserId(userId)
+		menus, modeErr = model.GetMenuNavByUserId(userID)
 	}
 	if modeErr != nil {
 		return nil, nil, errno.ErrDatabase

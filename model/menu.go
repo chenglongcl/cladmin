@@ -18,7 +18,7 @@ type Menu struct {
 }
 
 type MenuInfo struct {
-	Id         uint64 `json:"menuId"`
+	ID         uint64 `json:"menuId"`
 	ParentID   uint64 `json:"parentId"`
 	ParentName string `json:"parentName"`
 	Name       string `json:"name"`

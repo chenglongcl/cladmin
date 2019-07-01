@@ -71,12 +71,12 @@ func CheckRoleByRoleNameID(id uint64, roleName string) (bool, error) {
 }
 
 func AddRole(data map[string]interface{}) (id uint64, err error) {
-	menuIdListJson, _ := jsoniter.MarshalToString(data["menu_id_list"])
+	menuIDListJson, _ := jsoniter.MarshalToString(data["menu_id_list"])
 	role := Role{
 		RoleName:     data["role_name"].(string),
 		Remark:       data["remark"].(string),
 		CreateUserID: data["create_user_id"].(uint64),
-		MenuIDList:   menuIdListJson,
+		MenuIDList:   menuIDListJson,
 	}
 	var menu []Menu
 	SelectDB("self").Where("id in (?)", data["menu_id_list"].([]int64)).Find(&menu)
