@@ -5,7 +5,7 @@ type GetRequest struct {
 }
 
 type GetCommonResponse struct {
-	Id       uint64 `json:"configId"`
+	ID       uint64 `json:"configId"`
 	ParamKey string `json:"paramKey"`
 	Remark   string `json:"remark"`
 	Type     int64  `json:"type"`
@@ -22,7 +22,7 @@ type GetResponseWithMultipleParams struct {
 }
 
 type UpdateRequest struct {
-	Id         uint64 `json:"configId" binding:"required"`
+	ID         uint64 `json:"configId" binding:"required"`
 	ParamKey   string `json:"paramKey"`
 	ParamValue string `json:"paramValue"`
 	Status     int64  `json:"status"`

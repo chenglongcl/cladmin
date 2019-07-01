@@ -7,17 +7,17 @@ import (
 
 func RequestId() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		//Check for incoming header,If X-request-id exists
-		requestId := c.Request.Header.Get("X-Request-Id")
+		//Check for incoming header,If X-Request-ID exists
+		requestId := c.Request.Header.Get("X-Request-ID")
 		if requestId == "" {
 			u4, _ := uuid.NewV4()
 			requestId = u4.String()
 		}
 
 		// Expose it for use in the application
-		c.Set("X-Request-Id", requestId)
-		// Set X-Request-Id Header
-		c.Writer.Header().Set("X-Request-Id", requestId)
+		c.Set("X-Request-ID", requestId)
+		// Set X-Request-ID Header
+		c.Writer.Header().Set("X-Request-ID", requestId)
 		c.Next()
 	}
 }

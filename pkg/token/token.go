@@ -55,7 +55,7 @@ func Parse(tokenString string, secret string, c *gin.Context) (*Context, error) 
 		ctx.ID = uint64(claims["id"].(float64))
 		ctx.Username = claims["username"].(string)
 		c.Set("JWT_PAYLOAD", claims)
-		c.Set("userId", ctx.ID)
+		c.Set("userID", ctx.ID)
 		c.Set("username", ctx.Username)
 		return ctx, nil
 
@@ -86,7 +86,7 @@ func RefreshParse(tokenString string, secret string, c *gin.Context) (*Context, 
 		ctx.ID = uint64(claims["id"].(float64))
 		ctx.Username = claims["username"].(string)
 		c.Set("JWT_PAYLOAD", claims)
-		c.Set("userId", ctx.ID)
+		c.Set("userID", ctx.ID)
 		c.Set("username", ctx.Username)
 		return ctx, nil
 		// Other errors.

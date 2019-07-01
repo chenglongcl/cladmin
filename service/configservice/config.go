@@ -6,7 +6,7 @@ import (
 )
 
 type Config struct {
-	Id         uint64
+	ID         uint64
 	ParamKey   string
 	ParamValue string
 	Status     int64
@@ -24,7 +24,7 @@ func (a *Config) GetByParamKey() (*model.Config, *errno.Errno) {
 
 func (a *Config) Edit() *errno.Errno {
 	data := map[string]interface{}{
-		"id":          a.Id,
+		"id":          a.ID,
 		"param_key":   a.ParamKey,
 		"param_value": a.ParamValue,
 		"status":      a.Status,

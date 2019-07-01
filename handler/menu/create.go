@@ -19,7 +19,7 @@ func Create(c *gin.Context) {
 		return
 	}
 	menuService := menuservice.Menu{
-		ParentId: r.ParentId,
+		ParentID: r.ParentID,
 		Name:     r.Name,
 		Url:      r.Url,
 		Perms:    r.Perms,

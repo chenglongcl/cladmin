@@ -14,7 +14,7 @@ func Get(c *gin.Context) {
 		return
 	}
 	userService := userservice.User{
-		Id: r.Id,
+		ID: r.ID,
 	}
 	user, errNo := userService.Get()
 	if errNo != nil {
@@ -23,24 +23,24 @@ func Get(c *gin.Context) {
 	}
 	roleIdList := make([]uint64, len(user.Role))
 	for _, role := range user.Role {
-		roleIdList = append(roleIdList, role.Id)
+		roleIdList = append(roleIdList, role.ID)
 	}
 	SendResponse(c, nil, GetResponse{
-		UserId:       user.Id,
+		UserID:       user.ID,
 		Username:     user.Username,
 		CreateTime:   user.CreatedAt.Format("2006-01-02 15:04:05"),
-		CreateUserId: user.CreateUserId,
+		CreateUserID: user.CreateUserID,
 		Email:        user.Email,
 		Mobile:       user.Mobile,
 		Status:       user.Status,
-		RoleIdList:   roleIdList,
+		RoleIDList:   roleIdList,
 	})
 }
 
 func GetPersonalInfo(c *gin.Context) {
-	id, _ := c.Get("userId")
+	id, _ := c.Get("userID")
 	userService := userservice.User{
-		Id: id.(uint64),
+		ID: id.(uint64),
 	}
 	user, errNo := userService.Get()
 	if errNo != nil {
@@ -48,13 +48,13 @@ func GetPersonalInfo(c *gin.Context) {
 		return
 	}
 	SendResponse(c, nil, GetResponse{
-		UserId:       user.Id,
+		UserID:       user.ID,
 		Username:     user.Username,
 		CreateTime:   user.CreatedAt.Format("2006-01-02 15:04:05"),
-		CreateUserId: user.CreateUserId,
+		CreateUserID: user.CreateUserID,
 		Email:        user.Email,
 		Mobile:       user.Mobile,
 		Status:       user.Status,
-		RoleIdList:   nil,
+		RoleIDList:   nil,
 	})
 }

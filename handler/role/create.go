@@ -22,8 +22,8 @@ func Create(c *gin.Context) {
 	roleService := roleservice.Role{
 		RoleName:     r.RoleName,
 		Remark:       r.Remark,
-		CreateUserId: r.CreateUserId,
-		MenuIdList:   r.MenuIdList,
+		CreateUserID: r.CreateUserID,
+		MenuIDList:   r.MenuIDList,
 	}
 	id, errNo := roleService.Add()
 	if errNo != nil {

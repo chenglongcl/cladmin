@@ -14,7 +14,7 @@ func Update(c *gin.Context) {
 		return
 	}
 	configService := configservice.Config{
-		Id:         r.Id,
+		ID:         r.ID,
 		ParamKey:   r.ParamKey,
 		ParamValue: r.ParamValue,
 		Status:     r.Status,

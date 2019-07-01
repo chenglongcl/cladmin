@@ -19,7 +19,7 @@ func Get(c *gin.Context) {
 		return
 	}
 	articleService := articleservice.Article{
-		Id: r.Id,
+		ID: r.ID,
 	}
 	article, errNo := articleService.Get()
 	if errNo != nil {
@@ -27,8 +27,8 @@ func Get(c *gin.Context) {
 		return
 	}
 	SendResponse(c, nil, GetResponse{
-		Id:          article.Id,
-		CateId:      article.CateId,
+		ID:          article.ID,
+		CateID:      article.CateID,
 		Title:       article.Title,
 		Content:     article.Content,
 		Thumb:       article.Thumb,

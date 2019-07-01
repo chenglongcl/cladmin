@@ -9,10 +9,10 @@ import (
 
 type Role struct {
 	BaseModel
-	RoleName     string
-	Remark       string
-	MenuIdList   string
-	CreateUserId uint64
+	RoleName     string `gorm:"column:role_name"`
+	Remark       string `gorm:"column:remark"`
+	MenuIDList   string `gorm:"column:menu_id_list"`
+	CreateUserID uint64 `gorm:"column:create_user_id"`
 	Menu         []Menu `gorm:"many2many:sys_role_menu;"`
 }
 
@@ -20,8 +20,8 @@ type RoleInfo struct {
 	Id           uint64  `json:"roleId"`
 	RoleName     string  `json:"roleName"`
 	Remark       string  `json:"remark"`
-	MenuIdList   []int64 `json:"menuIdList"`
-	CreateUserId uint64  `json:"createUserId"`
+	MenuIDList   []int64 `json:"menuIdList"`
+	CreateUserID uint64  `json:"createUserId"`
 	CreateTime   string  `json:"createTime"`
 }
 
@@ -34,13 +34,13 @@ func (r *Role) TableName() string {
 	return viper.GetString("db.prefix") + "role"
 }
 
-func CheckRoleById(id uint64) (bool, error) {
+func CheckRoleByID(id uint64) (bool, error) {
 	var role Role
 	err := SelectDB("self").Select("id").Where("id = ?", id).First(&role).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err
 	}
-	if role.Id > 0 {
+	if role.ID > 0 {
 		return true, nil
 	}
 	return false, nil
@@ -52,19 +52,19 @@ func CheckRoleByRoleName(roleName string) (bool, error) {
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err
 	}
-	if role.Id > 0 {
+	if role.ID > 0 {
 		return true, nil
 	}
 	return false, nil
 }
 
-func CheckRoleByRoleNameId(id uint64, roleName string) (bool, error) {
+func CheckRoleByRoleNameID(id uint64, roleName string) (bool, error) {
 	var role Role
 	err := SelectDB("self").Select("id").Where("role_name = ? AND id != ?", roleName, id).First(&role).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err
 	}
-	if role.Id > 0 {
+	if role.ID > 0 {
 		return true, nil
 	}
 	return false, nil
@@ -75,15 +75,15 @@ func AddRole(data map[string]interface{}) (id uint64, err error) {
 	role := Role{
 		RoleName:     data["role_name"].(string),
 		Remark:       data["remark"].(string),
-		CreateUserId: data["create_user_id"].(uint64),
-		MenuIdList:   menuIdListJson,
+		CreateUserID: data["create_user_id"].(uint64),
+		MenuIDList:   menuIdListJson,
 	}
 	var menu []Menu
 	SelectDB("self").Where("id in (?)", data["menu_id_list"].([]int64)).Find(&menu)
 	if err := SelectDB("self").Create(&role).Association("Menu").Append(menu).Error; err != nil {
 		return 0, err
 	}
-	return role.Id, nil
+	return role.ID, nil
 }
 
 func EditRole(data map[string]interface{}) error {
@@ -112,7 +112,7 @@ func DeleteRole(id uint64) error {
 	}
 	go func() {
 		//删除中间表user_role关联数据
-		DeleteUserRoleByRoleId(id)
+		DeleteUserRoleByRoleID(id)
 	}()
 	return nil
 }

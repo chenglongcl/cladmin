@@ -1,17 +1,17 @@
 package article
 
 type CreateRequest struct {
-	UserId  uint64 `json:"userId" binding:"required"`
-	CateId  uint64 `json:"cateId" binding:"required"`
+	UserID  uint64 `json:"userId" binding:"required"`
+	CateID  uint64 `json:"cateId" binding:"required"`
 	Title   string `json:"title" binding:"required"`
 	Content string `json:"content"`
 	Thumb   string `json:"thumb"`
 }
 
 type UpdateRequest struct {
-	Id          uint64 `json:"articleId" binding:"required"`
-	UserId      uint64 `json:"userId" binding:"required"`
-	CateId      uint64 `json:"cateId" binding:"required"`
+	ID          uint64 `json:"articleId" binding:"required"`
+	UserID      uint64 `json:"userId" binding:"required"`
+	CateID      uint64 `json:"cateId" binding:"required"`
 	Title       string `json:"title" binding:"required"`
 	Content     string `json:"content"`
 	Thumb       string `json:"thumb"`
@@ -19,12 +19,12 @@ type UpdateRequest struct {
 }
 
 type GetRequest struct {
-	Id uint64 `form:"id" binding:"exists"`
+	ID uint64 `form:"id" binding:"exists"`
 }
 
 type GetResponse struct {
-	Id          uint64 `json:"articleId"`
-	CateId      uint64 `json:"cateId"`
+	ID          uint64 `json:"articleId"`
+	CateID      uint64 `json:"cateId"`
 	Title       string `json:"title"`
 	Content     string `json:"content"`
 	Thumb       string `json:"thumb"`
@@ -33,7 +33,7 @@ type GetResponse struct {
 
 type ListRequest struct {
 	Title  string `form:"title"`
-	CateId uint64 `form:"cateId"`
+	CateID uint64 `form:"cateId"`
 	Page   uint64 `form:"page"`
 	Limit  uint64 `form:"limit"`
 }

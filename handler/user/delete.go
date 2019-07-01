@@ -28,7 +28,7 @@ func Delete(c *gin.Context) {
 		go func(id uint64) {
 			defer wg.Done()
 			userService := userservice.User{
-				Id: id,
+				ID: id,
 			}
 			user, _ := userService.Get()
 			if errNo := userService.Delete(); errNo != nil {

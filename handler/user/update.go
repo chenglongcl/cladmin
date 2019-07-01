@@ -21,20 +21,20 @@ func Update(c *gin.Context) {
 		return
 	}
 	userService := userservice.User{
-		Id:         r.Id,
+		ID:         r.ID,
 		Username:   r.Username,
 		Password:   r.Password,
 		Mobile:     r.Mobile,
 		Email:      r.Email,
 		Status:     r.Status,
-		RoleIdList: r.RoleIdList,
+		RoleIDList: r.RoleIDList,
 	}
 	errNo := userService.Edit()
 	if errNo != nil {
 		SendResponse(c, errNo, nil)
 		return
 	}
-	inject.Obj.Common.UserAPI.LoadPolicy(userService.Id)
+	inject.Obj.Common.UserAPI.LoadPolicy(userService.ID)
 	SendResponse(c, nil, nil)
 }
 
@@ -48,13 +48,13 @@ func UpdatePersonal(c *gin.Context) {
 		SendResponse(c, errno.ErrValidation, nil)
 		return
 	}
-	id, exist := c.Get("userId")
+	id, exist := c.Get("userID")
 	if !exist {
 		SendResponse(c, errno.ErrNotUserExist, nil)
 		return
 	}
 	userService := userservice.User{
-		Id:       id.(uint64),
+		ID:       id.(uint64),
 		Password: r.Password,
 	}
 	errNo := userService.EditPersonal()

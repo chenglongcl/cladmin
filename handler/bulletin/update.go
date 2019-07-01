@@ -19,7 +19,7 @@ func Update(c *gin.Context) {
 		return
 	}
 	publicNoticeService := &bulletinservice.Bulletin{
-		Id:      r.Id,
+		ID:      r.ID,
 		Title:   r.Title,
 		Tag:     r.Tag,
 		Content: r.Content,

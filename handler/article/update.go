@@ -19,9 +19,9 @@ func Update(c *gin.Context) {
 		return
 	}
 	articleService := articleservice.Article{
-		Id:          r.Id,
-		UserId:      r.UserId,
-		CateId:      r.CateId,
+		ID:          r.ID,
+		UserID:      r.UserID,
+		CateID:      r.CateID,
 		Title:       r.Title,
 		Thumb:       r.Thumb,
 		Content:     r.Content,

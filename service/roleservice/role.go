@@ -10,11 +10,11 @@ import (
 )
 
 type Role struct {
-	Id           uint64
+	ID           uint64
 	RoleName     string
 	Remark       string
-	CreateUserId uint64
-	MenuIdList   []int64
+	CreateUserID uint64
+	MenuIDList   []int64
 	Enforcer     *casbin.Enforcer `inject:""`
 }
 
@@ -22,8 +22,8 @@ func (a *Role) Add() (id uint64, errNo *errno.Errno) {
 	data := map[string]interface{}{
 		"role_name":      a.RoleName,
 		"remark":         a.Remark,
-		"create_user_id": a.CreateUserId,
-		"menu_id_list":   a.MenuIdList,
+		"create_user_id": a.CreateUserID,
+		"menu_id_list":   a.MenuIDList,
 	}
 	if roleExist, _ := model.CheckRoleByRoleName(data["role_name"].(string)); roleExist {
 		return 0, errno.ErrRecordExist
@@ -36,7 +36,7 @@ func (a *Role) Add() (id uint64, errNo *errno.Errno) {
 }
 
 func (a *Role) Get() (*model.Role, *errno.Errno) {
-	role, err := model.GetRole(a.Id)
+	role, err := model.GetRole(a.ID)
 	if err != nil {
 		return nil, errno.ErrDatabase
 	}
@@ -50,7 +50,7 @@ func (a *Role) GetAll() ([]*model.RoleInfo, *errno.Errno) {
 	}
 	var ids []uint64
 	for _, role := range roles {
-		ids = append(ids, role.Id)
+		ids = append(ids, role.ID)
 	}
 
 	info := make([]*model.RoleInfo, 0)
@@ -68,13 +68,13 @@ func (a *Role) GetAll() ([]*model.RoleInfo, *errno.Errno) {
 			roleList.Lock.Lock()
 			defer roleList.Lock.Unlock()
 			var menuIdList []int64
-			jsoniter.UnmarshalFromString(role.MenuIdList, &menuIdList)
-			roleList.IdMap[role.Id] = &model.RoleInfo{
-				Id:           role.Id,
+			jsoniter.UnmarshalFromString(role.MenuIDList, &menuIdList)
+			roleList.IdMap[role.ID] = &model.RoleInfo{
+				Id:           role.ID,
 				RoleName:     role.RoleName,
 				Remark:       role.Remark,
-				MenuIdList:   menuIdList,
-				CreateUserId: role.CreateUserId,
+				MenuIDList:   menuIdList,
+				CreateUserID: role.CreateUserID,
 				CreateTime:   role.CreatedAt.Format("2006-01-02 15:04:05"),
 			}
 		}(role)
@@ -104,7 +104,7 @@ func (a *Role) GetList(ps util.PageSetting) ([]*model.RoleInfo, uint64, *errno.E
 	}
 	var ids []uint64
 	for _, role := range roles {
-		ids = append(ids, role.Id)
+		ids = append(ids, role.ID)
 	}
 
 	info := make([]*model.RoleInfo, 0)
@@ -122,13 +122,13 @@ func (a *Role) GetList(ps util.PageSetting) ([]*model.RoleInfo, uint64, *errno.E
 			roleList.Lock.Lock()
 			defer roleList.Lock.Unlock()
 			var menuIdList []int64
-			jsoniter.UnmarshalFromString(role.MenuIdList, &menuIdList)
-			roleList.IdMap[role.Id] = &model.RoleInfo{
-				Id:           role.Id,
+			jsoniter.UnmarshalFromString(role.MenuIDList, &menuIdList)
+			roleList.IdMap[role.ID] = &model.RoleInfo{
+				Id:           role.ID,
 				RoleName:     role.RoleName,
 				Remark:       role.Remark,
-				MenuIdList:   menuIdList,
-				CreateUserId: role.CreateUserId,
+				MenuIDList:   menuIdList,
+				CreateUserID: role.CreateUserID,
 				CreateTime:   role.CreatedAt.Format("2006-01-02 15:04:05"),
 			}
 		}(role)
@@ -149,12 +149,12 @@ func (a *Role) GetList(ps util.PageSetting) ([]*model.RoleInfo, uint64, *errno.E
 
 func (a *Role) Edit() *errno.Errno {
 	data := map[string]interface{}{
-		"id":           a.Id,
+		"id":           a.ID,
 		"role_name":    a.RoleName,
 		"remark":       a.Remark,
-		"menu_id_list": a.MenuIdList,
+		"menu_id_list": a.MenuIDList,
 	}
-	if roleNameExist, _ := model.CheckRoleByRoleNameId(data["id"].(uint64), data["role_name"].(string));
+	if roleNameExist, _ := model.CheckRoleByRoleNameID(data["id"].(uint64), data["role_name"].(string));
 		roleNameExist {
 		return errno.ErrRecordExist
 	}
@@ -166,7 +166,7 @@ func (a *Role) Edit() *errno.Errno {
 }
 
 func (a *Role) Delete() *errno.Errno {
-	err := model.DeleteRole(a.Id)
+	err := model.DeleteRole(a.ID)
 	if err != nil {
 		return errno.ErrDatabase
 	}
@@ -180,7 +180,7 @@ func (a *Role) LoadAllPolicy() error {
 		return err
 	}
 	for _, role := range roles {
-		err = a.LoadPolicy(role.Id)
+		err = a.LoadPolicy(role.ID)
 		if err != nil {
 			return err
 		}

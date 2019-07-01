@@ -6,7 +6,7 @@ type CreateRequest struct {
 	Mobile       string  `json:"mobile" validate:"numeric,max=11"`
 	Email        string  `json:"email"`
 	Status       int64   `json:"status"`
-	CreateUserId uint64  `json:"createUserId"`
+	CreateUserID uint64  `json:"createUserId"`
 	RoleIdList   []int64 `json:"roleIdList"`
 }
 
@@ -24,28 +24,28 @@ type ListRequest struct {
 }
 
 type GetRequest struct {
-	Id uint64 `form:"id"`
+	ID uint64 `form:"id"`
 }
 
 type GetResponse struct {
-	UserId       uint64   `json:"userId"`
+	UserID       uint64   `json:"userId"`
 	Username     string   `json:"username"`
 	CreateTime   string   `json:"createTime"`
-	CreateUserId uint64   `json:"createUserId"`
+	CreateUserID uint64   `json:"createUserId"`
 	Email        string   `json:"email"`
 	Mobile       string   `json:"mobile"`
 	Status       int64    `json:"status"`
-	RoleIdList   []uint64 `json:"roleIdList"`
+	RoleIDList   []uint64 `json:"roleIdList"`
 }
 
 type UpdateRequest struct {
-	Id         uint64  `json:"userId" binding:"required"`
+	ID         uint64  `json:"userId" binding:"required"`
 	Username   string  `json:"username" binding:"required"`
 	Password   string  `json:"password"`
 	Mobile     string  `json:"mobile" validate:"numeric,max=11"`
 	Email      string  `json:"email" validate:"email"`
 	Status     int64   `json:"status"`
-	RoleIdList []int64 `json:"roleIdList" binding:"required"`
+	RoleIDList []int64 `json:"roleIdList" binding:"required"`
 }
 
 type UpdatePersonalRequest struct {

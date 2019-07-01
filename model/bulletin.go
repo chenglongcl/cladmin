@@ -14,7 +14,7 @@ type Bulletin struct {
 }
 
 type BulletinInfo struct {
-	Id         uint64 `json:"id"`
+	ID         uint64 `json:"id"`
 	Title      string `json:"title"`
 	Tag        string `json:"tag"`
 	Content    string `json:"content"`

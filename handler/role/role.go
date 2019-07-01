@@ -3,27 +3,27 @@ package role
 type CreateRequest struct {
 	RoleName     string  `json:"roleName" binding:"required" validate:"min=1"`
 	Remark       string  `json:"remark"`
-	CreateUserId uint64  `json:"createUserId" validate:"min=1"`
-	MenuIdList   []int64 `json:"menuIdList" binding:"required"`
+	CreateUserID uint64  `json:"createUserId" validate:"min=1"`
+	MenuIDList   []int64 `json:"menuIdList" binding:"required"`
 }
 
 type UpdateRequest struct {
-	Id         uint64  `json:"roleId" binding:"required"`
+	ID         uint64  `json:"roleId" binding:"required"`
 	RoleName   string  `json:"roleName" binding:"required" validate:"min=1"`
 	Remark     string  `json:"remark"`
-	MenuIdList []int64 `json:"menuIdList" binding:"required"`
+	MenuIDList []int64 `json:"menuIdList" binding:"required"`
 }
 
 type GetRequest struct {
-	Id uint64 `form:"id"`
+	ID uint64 `form:"id"`
 }
 
 type GetResponse struct {
-	Id           uint64  `json:"roleId"`
+	ID           uint64  `json:"roleId"`
 	RoleName     string  `json:"roleName"`
 	Remark       string  `json:"remark"`
-	CreateUserId uint64  `json:"createUserId"`
-	MenuIdList   []int64 `json:"menuIdList"`
+	CreateUserID uint64  `json:"createUserId"`
+	MenuIDList   []int64 `json:"menuIdList"`
 	CreateTime   string  `json:"createTime"`
 }
 

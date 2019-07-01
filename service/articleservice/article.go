@@ -9,9 +9,9 @@ import (
 )
 
 type Article struct {
-	Id          uint64
-	UserId      uint64
-	CateId      uint64
+	ID          uint64
+	UserID      uint64
+	CateID      uint64
 	Title       string
 	Thumb       string
 	Content     string
@@ -20,8 +20,8 @@ type Article struct {
 
 func (a *Article) Add() *errno.Errno {
 	data := map[string]interface{}{
-		"user_id":      a.UserId,
-		"cate_id":      a.CateId,
+		"user_id":      a.UserID,
+		"cate_id":      a.CateID,
 		"title":        a.Title,
 		"thumb":        a.Thumb,
 		"content":      a.Content,
@@ -35,9 +35,9 @@ func (a *Article) Add() *errno.Errno {
 
 func (a *Article) Edit() *errno.Errno {
 	data := map[string]interface{}{
-		"id":           a.Id,
-		"user_id":      a.UserId,
-		"cate_id":      a.CateId,
+		"id":           a.ID,
+		"user_id":      a.UserID,
+		"cate_id":      a.CateID,
 		"title":        a.Title,
 		"thumb":        a.Thumb,
 		"content":      a.Content,
@@ -50,7 +50,7 @@ func (a *Article) Edit() *errno.Errno {
 }
 
 func (a *Article) Get() (*model.Article, *errno.Errno) {
-	article, err := model.GetArticle(a.Id)
+	article, err := model.GetArticle(a.ID)
 	if err != nil {
 		return nil, errno.ErrDatabase
 	}
@@ -62,8 +62,8 @@ func (a *Article) GetList(ps util.PageSetting) ([]*model.ArticleInfo, uint64, *e
 	if a.Title != "" {
 		w["title like"] = "%" + a.Title + "%"
 	}
-	if a.CateId != 0 {
-		w["cate_id"] = a.CateId
+	if a.CateID != 0 {
+		w["cate_id"] = a.CateID
 	}
 	articles, count, err := model.GetArticleList(w, ps.Offset, ps.Limit)
 	if err != nil {
@@ -71,7 +71,7 @@ func (a *Article) GetList(ps util.PageSetting) ([]*model.ArticleInfo, uint64, *e
 	}
 	var ids []uint64
 	for _, article := range articles {
-		ids = append(ids, article.Id)
+		ids = append(ids, article.ID)
 	}
 
 	info := make([]*model.ArticleInfo, 0)
@@ -88,10 +88,10 @@ func (a *Article) GetList(ps util.PageSetting) ([]*model.ArticleInfo, uint64, *e
 			defer wg.Done()
 			articleList.Lock.Lock()
 			defer articleList.Lock.Unlock()
-			articleList.IdMap[article.Id] = &model.ArticleInfo{
-				Id:          article.Id,
-				UserId:      article.UserId,
-				CateId:      article.CateId,
+			articleList.IdMap[article.ID] = &model.ArticleInfo{
+				ID:          article.ID,
+				UserID:      article.UserID,
+				CateID:      article.CateID,
 				Title:       article.Title,
 				Thumb:       article.Thumb,
 				ReleaseTime: article.ReleaseTime,
@@ -112,7 +112,7 @@ func (a *Article) GetList(ps util.PageSetting) ([]*model.ArticleInfo, uint64, *e
 }
 
 func (a *Article) Delete() *errno.Errno {
-	if err := model.DeleteArticle(a.Id); err != nil {
+	if err := model.DeleteArticle(a.ID); err != nil {
 		return errno.ErrDatabase
 	}
 	return nil

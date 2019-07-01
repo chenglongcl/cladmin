@@ -8,7 +8,7 @@ import (
 
 type Category struct {
 	BaseModel
-	ParentId uint64 `gorm:"column:parent_id"`
+	ParentID uint64 `gorm:"column:parent_id"`
 	Name     string `gorm:"column:name"`
 	Icon     string `gorm:"column:icon"`
 	OrderNum int64  `gorm:"column:order_num"`
@@ -16,7 +16,7 @@ type Category struct {
 
 type CategoryInfo struct {
 	Id         uint64 `json:"categoryId"`
-	ParentId   uint64 `json:"parentId"`
+	ParentID   uint64 `json:"parentId"`
 	Name       string `json:"name"`
 	Icon       string `json:"icon"`
 	OrderNum   int64  `json:"orderNum"`
@@ -35,7 +35,7 @@ func (c *Category) TableName() string {
 
 func AddCategory(data map[string]interface{}) error {
 	category := Category{
-		ParentId: data["parent_id"].(uint64),
+		ParentID: data["parent_id"].(uint64),
 		Name:     data["name"].(string),
 		Icon:     data["icon"].(string),
 		OrderNum: data["order_num"].(int64),

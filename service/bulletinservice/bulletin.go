@@ -8,7 +8,7 @@ import (
 )
 
 type Bulletin struct {
-	Id      uint64
+	ID      uint64
 	Title   string
 	Tag     string
 	Content string
@@ -28,7 +28,7 @@ func (a *Bulletin) Add() *errno.Errno {
 
 func (a *Bulletin) Edit() *errno.Errno {
 	data := map[string]interface{}{
-		"id":      a.Id,
+		"id":      a.ID,
 		"title":   a.Title,
 		"tag":     a.Tag,
 		"content": a.Content,
@@ -40,7 +40,7 @@ func (a *Bulletin) Edit() *errno.Errno {
 }
 
 func (a *Bulletin) Get() (*model.Bulletin, *errno.Errno) {
-	publicNotice, err := model.GetBulletin(a.Id)
+	publicNotice, err := model.GetBulletin(a.ID)
 	if err != nil {
 		return nil, errno.ErrDatabase
 	}
@@ -61,7 +61,7 @@ func (a *Bulletin) GetList(ps util.PageSetting) ([]*model.BulletinInfo, uint64, 
 	}
 	var ids []uint64
 	for _, publicNotice := range publicNotices {
-		ids = append(ids, publicNotice.Id)
+		ids = append(ids, publicNotice.ID)
 	}
 	wg := sync.WaitGroup{}
 	publicNoticesList := model.BulletinList{
@@ -75,8 +75,8 @@ func (a *Bulletin) GetList(ps util.PageSetting) ([]*model.BulletinInfo, uint64, 
 			defer wg.Done()
 			publicNoticesList.Lock.Lock()
 			defer publicNoticesList.Lock.Unlock()
-			publicNoticesList.IdMap[publicNotice.Id] = &model.BulletinInfo{
-				Id:         publicNotice.Id,
+			publicNoticesList.IdMap[publicNotice.ID] = &model.BulletinInfo{
+				ID:         publicNotice.ID,
 				Title:      publicNotice.Title,
 				Tag:        publicNotice.Tag,
 				Content:    publicNotice.Content,
@@ -100,7 +100,7 @@ func (a *Bulletin) GetList(ps util.PageSetting) ([]*model.BulletinInfo, uint64, 
 }
 
 func (a *Bulletin) Delete() *errno.Errno {
-	if err := model.DeleteBulletin(a.Id); err != nil {
+	if err := model.DeleteBulletin(a.ID); err != nil {
 		return errno.ErrDatabase
 	}
 	return nil

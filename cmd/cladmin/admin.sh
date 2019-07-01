@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SERVER="cmd/cladmin/cladmin"
+SERVER="cladmin"
 BASE_DIR=$PWD
 INTERVAL=2
 

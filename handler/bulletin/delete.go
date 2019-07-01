@@ -28,7 +28,7 @@ func Delete(c *gin.Context) {
 		go func(id uint64) {
 			defer wg.Done()
 			publicNoticeService := bulletinservice.Bulletin{
-				Id: id,
+				ID: id,
 			}
 			if errNo := publicNoticeService.Delete(); errNo != nil {
 				errorChanel <- errNo

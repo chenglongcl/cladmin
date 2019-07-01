@@ -11,14 +11,14 @@ import (
 )
 
 type User struct {
-	Id           uint64
+	ID           uint64
 	Username     string
 	Password     string
 	Mobile       string
 	Email        string
 	Status       int64
-	CreateUserId uint64
-	RoleIdList   []int64
+	CreateUserID uint64
+	RoleIDList   []int64
 	Enforcer     *casbin.Enforcer `inject:""`
 }
 
@@ -33,8 +33,8 @@ func (a *User) Add() (id uint64, errNo *errno.Errno) {
 		"mobile":         a.Mobile,
 		"email":          a.Email,
 		"status":         a.Status,
-		"create_user_id": a.CreateUserId,
-		"role_id":        a.RoleIdList,
+		"create_user_id": a.CreateUserID,
+		"role_id":        a.RoleIDList,
 	}
 	id, err := model.AddUser(data)
 	if err != nil {
@@ -44,7 +44,7 @@ func (a *User) Add() (id uint64, errNo *errno.Errno) {
 }
 
 func (a *User) Get() (user *model.User, errNo *errno.Errno) {
-	user, err := model.GetUser(a.Id)
+	user, err := model.GetUser(a.ID)
 	if err != nil {
 		return nil, errno.ErrDatabase
 	}
@@ -63,7 +63,7 @@ func (a *User) GetList(ps util.PageSetting) ([]*model.UserInfo, uint64, *errno.E
 	}
 	var ids []uint64
 	for _, user := range users {
-		ids = append(ids, user.Id)
+		ids = append(ids, user.ID)
 	}
 
 	wg := sync.WaitGroup{}
@@ -79,13 +79,13 @@ func (a *User) GetList(ps util.PageSetting) ([]*model.UserInfo, uint64, *errno.E
 			defer wg.Done()
 			userList.Lock.Lock()
 			defer userList.Lock.Unlock()
-			userList.IdMap[u.Id] = &model.UserInfo{
-				Id:           u.Id,
+			userList.IdMap[u.ID] = &model.UserInfo{
+				ID:           u.ID,
 				Username:     u.Username,
 				Mobile:       u.Mobile,
 				Email:        u.Email,
 				Status:       u.Status,
-				CreateUserId: u.CreateUserId,
+				CreateUserID: u.CreateUserID,
 				CreateTime:   u.CreatedAt.Format("2006-01-02 15:04:05"),
 				UpdateTime:   u.UpdatedAt.Format("2006-01-02 15:04:05"),
 			}
@@ -106,7 +106,7 @@ func (a *User) GetList(ps util.PageSetting) ([]*model.UserInfo, uint64, *errno.E
 }
 
 func (a *User) Edit() *errno.Errno {
-	if userExist, _ := model.CheckUserUsernameId(a.Username, a.Id); userExist {
+	if userExist, _ := model.CheckUserUsernameID(a.Username, a.ID); userExist {
 		return errno.ErrUserExist
 	}
 	var password string
@@ -114,13 +114,13 @@ func (a *User) Edit() *errno.Errno {
 		password, _ = auth.Encrypt(a.Password)
 	}
 	data := map[string]interface{}{
-		"id":       a.Id,
+		"id":       a.ID,
 		"username": a.Username,
 		"password": password,
 		"mobile":   a.Mobile,
 		"email":    a.Email,
 		"status":   a.Status,
-		"role_id":  a.RoleIdList,
+		"role_id":  a.RoleIDList,
 	}
 	err := model.EditUser(data)
 	if err != nil {
@@ -135,7 +135,7 @@ func (a *User) EditPersonal() *errno.Errno {
 		password, _ = auth.Encrypt(a.Password)
 	}
 	data := map[string]interface{}{
-		"id":       a.Id,
+		"id":       a.ID,
 		"password": password,
 	}
 	err := model.EditPersonal(data)
@@ -146,7 +146,7 @@ func (a *User) EditPersonal() *errno.Errno {
 }
 
 func (a *User) Delete() *errno.Errno {
-	err := model.DeleteUser(a.Id)
+	err := model.DeleteUser(a.ID)
 	if err != nil {
 		return errno.ErrDatabase
 	}
@@ -161,7 +161,7 @@ func (a *User) LoadAllPolicy() error {
 	}
 	for _, user := range users {
 		if len(user.Role) != 0 {
-			err = a.LoadPolicy(user.Id)
+			err = a.LoadPolicy(user.ID)
 			if err != nil {
 				return err
 			}

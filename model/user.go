@@ -13,17 +13,17 @@ type User struct {
 	Mobile       string `gorm:"column:mobile"`
 	Email        string `gorm:"column:email"`
 	Status       int64  `gorm:"column:status"`
-	CreateUserId uint64 `gorm:"column:create_user_id"`
+	CreateUserID uint64 `gorm:"column:create_user_id"`
 	Role         []Role `gorm:"many2many:sys_user_role;"`
 }
 
 type UserInfo struct {
-	Id           uint64 `json:"userId"`
+	ID           uint64 `json:"userId"`
 	Username     string `json:"username"`
 	Mobile       string `json:"mobile"`
 	Email        string `json:"email"`
 	Status       int64  `json:"status"`
-	CreateUserId uint64 `json:"createUserId"`
+	CreateUserID uint64 `json:"createUserId"`
 	CreateTime   string `json:"createTime"`
 	UpdateTime   string `json:"updateTime"`
 }
@@ -43,13 +43,13 @@ func GetUserByUsername(username string) (*User, error) {
 	return u, d.Error
 }
 
-func CheckUserById(id uint64) (bool, error) {
+func CheckUserByID(id uint64) (bool, error) {
 	var user User
 	err := SelectDB("self").Select("id").Where("id = ?", id).First(&user).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err
 	}
-	if user.Id > 0 {
+	if user.ID > 0 {
 		return true, nil
 	}
 	return false, nil
@@ -61,19 +61,19 @@ func CheckUserByUsername(username string) (bool, error) {
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err
 	}
-	if user.Id > 0 {
+	if user.ID > 0 {
 		return true, nil
 	}
 	return false, nil
 }
 
-func CheckUserUsernameId(username string, id uint64) (bool, error) {
+func CheckUserUsernameID(username string, id uint64) (bool, error) {
 	var user User
 	err := SelectDB("self").Where("username = ? AND id != ?", username, id).First(&user).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err
 	}
-	if user.Id > 0 {
+	if user.ID > 0 {
 		return true, nil
 	}
 
@@ -87,14 +87,14 @@ func AddUser(data map[string]interface{}) (id uint64, err error) {
 		Mobile:       data["mobile"].(string),
 		Email:        data["email"].(string),
 		Status:       data["status"].(int64),
-		CreateUserId: data["create_user_id"].(uint64),
+		CreateUserID: data["create_user_id"].(uint64),
 	}
 	var role []Role
 	SelectDB("self").Where("id in (?)", data["role_id"].([]int64)).Find(&role)
 	if err := SelectDB("self").Create(&user).Association("Role").Append(role).Error; err != nil {
 		return 0, err
 	}
-	return user.Id, nil
+	return user.ID, nil
 }
 
 func EditUser(data map[string]interface{}) error {

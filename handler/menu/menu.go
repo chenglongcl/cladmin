@@ -1,7 +1,7 @@
 package menu
 
 type CreateRequest struct {
-	ParentId uint64 `json:"parentId" binding:"exists"`
+	ParentID uint64 `json:"parentId" binding:"exists"`
 	Name     string `json:"name" binding:"required"`
 	Url      string `json:"url" binding:"exists"`
 	Perms    string `json:"perms"`
@@ -11,12 +11,12 @@ type CreateRequest struct {
 }
 
 type GetRequest struct {
-	Id uint64 `form:"id"`
+	ID uint64 `form:"id"`
 }
 
 type GetResponse struct {
-	Id         uint64 `json:"menuId"`
-	ParentId   uint64 `json:"parentId"`
+	ID         uint64 `json:"menuId"`
+	ParentID   uint64 `json:"parentId"`
 	ParentName string `json:"parentName"`
 	Name       string `json:"name"`
 	Url        string `json:"url"`
@@ -29,8 +29,8 @@ type GetResponse struct {
 }
 
 type UpdateRequest struct {
-	Id       uint64 `json:"menuId" binding:"required"`
-	ParentId uint64 `json:"parentId" binding:"exists"`
+	ID       uint64 `json:"menuId" binding:"required"`
+	ParentID uint64 `json:"parentId" binding:"exists"`
 	Name     string `json:"name" binding:"required"`
 	Url      string `json:"url" binding:"required"`
 	Perms    string `json:"perms"`
@@ -40,5 +40,5 @@ type UpdateRequest struct {
 }
 
 type DeleteRequest struct {
-	Id uint64 `form:"id" binding:"required"`
+	ID uint64 `form:"id" binding:"required"`
 }

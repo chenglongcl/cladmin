@@ -14,7 +14,7 @@ func Get(c *gin.Context) {
 		return
 	}
 	menuService := menuservice.Menu{
-		Id: r.Id,
+		ID: r.ID,
 	}
 	menu, errNo := menuService.Get()
 	if errNo != nil {
@@ -22,8 +22,8 @@ func Get(c *gin.Context) {
 		return
 	}
 	SendResponse(c, nil, GetResponse{
-		Id:         menu.Id,
-		ParentId:   menu.ParentId,
+		ID:         menu.ID,
+		ParentID:   menu.ParentID,
 		ParentName: "",
 		Name:       menu.Name,
 		Url:        menu.Url,
@@ -37,7 +37,7 @@ func Get(c *gin.Context) {
 }
 
 func GetMenuNav(c *gin.Context) {
-	userId, _ := c.Get("userId")
+	userId, _ := c.Get("userID")
 	menuService := menuservice.Menu{}
 	list, permissions, errNo := menuService.GetMenuNavByUserId(userId.(uint64))
 	if errNo != nil {

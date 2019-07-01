@@ -19,8 +19,8 @@ func Create(c *gin.Context) {
 		return
 	}
 	articleService := articleservice.Article{
-		UserId:  r.UserId,
-		CateId:  r.CateId,
+		UserID:  r.UserID,
+		CateID:  r.CateID,
 		Title:   r.Title,
 		Thumb:   r.Thumb,
 		Content: r.Content,

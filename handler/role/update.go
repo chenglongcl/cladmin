@@ -20,15 +20,15 @@ func Update(c *gin.Context) {
 		return
 	}
 	roleService := roleservice.Role{
-		Id:         r.Id,
+		ID:         r.ID,
 		RoleName:   r.RoleName,
 		Remark:     r.Remark,
-		MenuIdList: r.MenuIdList,
+		MenuIDList: r.MenuIDList,
 	}
 	if errNo := roleService.Edit(); errNo != nil {
 		SendResponse(c, errNo, nil)
 		return
 	}
-	inject.Obj.Common.RoleAPI.LoadPolicy(roleService.Id)
+	inject.Obj.Common.RoleAPI.LoadPolicy(roleService.ID)
 	SendResponse(c, nil, nil)
 }

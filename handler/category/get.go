@@ -14,7 +14,7 @@ func Get(c *gin.Context) {
 		return
 	}
 	categoryService := categoryservice.Category{
-		Id: r.Id,
+		ID: r.ID,
 	}
 	category, errNo := categoryService.Get()
 	if errNo != nil {
@@ -22,8 +22,8 @@ func Get(c *gin.Context) {
 		return
 	}
 	SendResponse(c, nil, GetResponse{
-		Id:         category.Id,
-		ParentId:   category.ParentId,
+		ID:         category.ID,
+		ParentID:   category.ParentID,
 		Name:       category.Name,
 		Icon:       category.Icon,
 		OrderNum:   category.OrderNum,

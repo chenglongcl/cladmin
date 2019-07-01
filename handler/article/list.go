@@ -19,7 +19,7 @@ func List(c *gin.Context) {
 	}
 	ps.Setting(r.Page, r.Limit)
 	articleService := articleservice.Article{
-		CateId: r.CateId,
+		CateID: r.CateID,
 		Title:  r.Title,
 	}
 	info, count, errNo := articleService.GetList(ps)

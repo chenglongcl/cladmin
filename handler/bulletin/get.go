@@ -19,7 +19,7 @@ func Get(c *gin.Context) {
 		return
 	}
 	publicNoticeService := &bulletinservice.Bulletin{
-		Id: r.Id,
+		ID: r.ID,
 	}
 	publicNotice, errNo := publicNoticeService.Get()
 	if errNo != nil {
@@ -27,7 +27,7 @@ func Get(c *gin.Context) {
 		return
 	}
 	SendResponse(c, nil, GetResponse{
-		Id:         publicNotice.Id,
+		ID:         publicNotice.ID,
 		Title:      publicNotice.Title,
 		Tag:        publicNotice.Tag,
 		Content:    publicNotice.Content,

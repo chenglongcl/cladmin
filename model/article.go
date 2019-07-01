@@ -8,8 +8,8 @@ import (
 
 type Article struct {
 	BaseModel
-	UserId      uint64 `gorm:"column:user_id"`
-	CateId      uint64 `gorm:"column:cate_id"`
+	UserID      uint64 `gorm:"column:user_id"`
+	CateID      uint64 `gorm:"column:cate_id"`
 	Title       string `gorm:"column:title"`
 	Content     string `gorm:"column:content;type:text"`
 	Thumb       string `gorm:"column:thumb"`
@@ -17,9 +17,9 @@ type Article struct {
 }
 
 type ArticleInfo struct {
-	Id          uint64 `json:"articleId"`
-	UserId      uint64 `json:"userId"`
-	CateId      uint64 `json:"cateId"`
+	ID          uint64 `json:"articleId"`
+	UserID      uint64 `json:"userId"`
+	CateID      uint64 `json:"cateId"`
 	Title       string `json:"title"`
 	Thumb       string `json:"thumb"`
 	ReleaseTime string `json:"releaseTime"`
@@ -36,8 +36,8 @@ func (a *Article) TableName() string {
 
 func AddArticle(data map[string]interface{}) error {
 	article := Article{
-		UserId:      data["user_id"].(uint64),
-		CateId:      data["cate_id"].(uint64),
+		UserID:      data["user_id"].(uint64),
+		CateID:      data["cate_id"].(uint64),
 		Title:       data["title"].(string),
 		Content:     data["content"].(string),
 		Thumb:       data["thumb"].(string),

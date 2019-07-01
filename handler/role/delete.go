@@ -29,7 +29,7 @@ func Delete(c *gin.Context) {
 		go func(id uint64) {
 			defer wg.Done()
 			roleService := roleservice.Role{
-				Id: id,
+				ID: id,
 			}
 			role, _ := roleService.Get()
 			if errNo := roleService.Delete(); errNo != nil {

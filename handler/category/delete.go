@@ -14,7 +14,7 @@ func Delete(c *gin.Context) {
 		return
 	}
 	categoryService := categoryservice.Category{
-		Id: r.Id,
+		ID: r.ID,
 	}
 	if errNo := categoryService.Delete(); errNo != nil {
 		SendResponse(c, errNo, nil)

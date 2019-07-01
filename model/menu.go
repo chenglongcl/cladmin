@@ -8,7 +8,7 @@ import (
 
 type Menu struct {
 	BaseModel
-	ParentId uint64 `gorm:"column:parent_id"`
+	ParentID uint64 `gorm:"column:parent_id"`
 	Name     string `gorm:"column:name"`
 	Url      string `gorm:"column:url"`
 	Perms    string `gorm:"column:perms"`
@@ -19,7 +19,7 @@ type Menu struct {
 
 type MenuInfo struct {
 	Id         uint64 `json:"menuId"`
-	ParentId   uint64 `json:"parentId"`
+	ParentID   uint64 `json:"parentId"`
 	ParentName string `json:"parentName"`
 	Name       string `json:"name"`
 	Url        string `json:"url"`
@@ -41,13 +41,13 @@ func (m *Menu) TableName() string {
 	return viper.GetString("db.prefix") + "menu"
 }
 
-func CheckMenuById(id uint64) (bool, error) {
+func CheckMenuByID(id uint64) (bool, error) {
 	var menu Menu
 	err := SelectDB("self").Select("id").Where("id = ?", id).First(&menu).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err
 	}
-	if menu.Id > 0 {
+	if menu.ID > 0 {
 		return true, nil
 	}
 	return false, nil
@@ -55,7 +55,7 @@ func CheckMenuById(id uint64) (bool, error) {
 
 func AddMenu(data map[string]interface{}) error {
 	menu := Menu{
-		ParentId: data["parent_id"].(uint64),
+		ParentID: data["parent_id"].(uint64),
 		Name:     data["name"].(string),
 		Url:      data["url"].(string),
 		Perms:    data["perms"].(string),
@@ -106,7 +106,7 @@ func DeleteMenu(id uint64) error {
 	}
 	go func() {
 		//删除中间表role_menu关联数据
-		DeleteRoleMenuByMenuId(id)
+		DeleteRoleMenuByMenuID(id)
 	}()
 	return nil
 }
@@ -121,7 +121,7 @@ func EditMenuGetRoles(id uint64) []uint64 {
 		Find(&role)
 	var roleList []uint64
 	for _, v := range role {
-		roleList = append(roleList, v.Id)
+		roleList = append(roleList, v.ID)
 	}
 	return roleList
 }

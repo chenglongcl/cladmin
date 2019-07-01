@@ -7,7 +7,7 @@ import (
 )
 
 type OssConfig struct {
-	AliYunAccessKeyId     string `json:"aliyunAccessKeyId"`
+	AliYunAccessKeyID     string `json:"aliyunAccessKeyId"`
 	AliYunAccessKeySecret string `json:"aliyunAccessKeySecret"`
 	AliYunBucketName      string `json:"aliyunBucketName"`
 	AliYunEndPoint        string `json:"aliyunEndPoint"`

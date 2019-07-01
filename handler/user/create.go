@@ -26,8 +26,8 @@ func Create(c *gin.Context) {
 		Mobile:       r.Mobile,
 		Email:        r.Email,
 		Status:       r.Status,
-		CreateUserId: r.CreateUserId,
-		RoleIdList:   r.RoleIdList,
+		CreateUserID: r.CreateUserID,
+		RoleIDList:   r.RoleIdList,
 	}
 	id, errNo := userService.Add()
 	if errNo != nil {

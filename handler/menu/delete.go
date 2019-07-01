@@ -20,7 +20,7 @@ func Delete(c *gin.Context) {
 		return
 	}
 	menuService := menuservice.Menu{
-		Id: r.Id,
+		ID: r.ID,
 	}
 	roleList, errNo := menuService.Delete()
 	if errNo != nil {

@@ -19,8 +19,8 @@ func Update(c *gin.Context) {
 		return
 	}
 	categoryService := categoryservice.Category{
-		Id:       r.Id,
-		ParentId: r.ParentId,
+		ID:       r.ID,
+		ParentID: r.ParentID,
 		Name:     r.Name,
 		Icon:     r.Icon,
 		OrderNum: r.OrderNum,

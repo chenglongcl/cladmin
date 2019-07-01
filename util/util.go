@@ -23,7 +23,7 @@ func GenStr(length int) (string, error) {
 }
 
 func GetReqID(c *gin.Context) string {
-	v, ok := c.Get("X-Request-Id")
+	v, ok := c.Get("X-Request-ID")
 	if !ok {
 		return ""
 	}

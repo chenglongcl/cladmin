@@ -15,7 +15,7 @@ func Get(c *gin.Context) {
 		return
 	}
 	roleService := roleservice.Role{
-		Id: r.Id,
+		ID: r.ID,
 	}
 	role, errNo := roleService.Get()
 	if errNo != nil {
@@ -23,13 +23,13 @@ func Get(c *gin.Context) {
 		return
 	}
 	menuIdList := make([]int64, 0)
-	jsoniter.UnmarshalFromString(role.MenuIdList, &menuIdList)
+	jsoniter.UnmarshalFromString(role.MenuIDList, &menuIdList)
 	SendResponse(c, nil, GetResponse{
-		Id:           role.Id,
+		ID:           role.ID,
 		RoleName:     role.RoleName,
 		Remark:       role.Remark,
-		CreateUserId: role.CreateUserId,
-		MenuIdList:   menuIdList,
+		CreateUserID: role.CreateUserID,
+		MenuIDList:   menuIdList,
 		CreateTime:   role.CreatedAt.Format("2006-01-02 15:04:05"),
 	})
 }

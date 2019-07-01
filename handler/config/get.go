@@ -23,7 +23,7 @@ func Get(c *gin.Context) {
 		return
 	}
 	gcr := GetCommonResponse{
-		Id:       config.Id,
+		ID:       config.ID,
 		ParamKey: config.ParamKey,
 		Remark:   config.Remark,
 		Type:     config.Type,

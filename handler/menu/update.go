@@ -15,8 +15,8 @@ func Update(c *gin.Context) {
 		return
 	}
 	menuService := menuservice.Menu{
-		Id:       r.Id,
-		ParentId: r.ParentId,
+		ID:       r.ID,
+		ParentID: r.ParentID,
 		Name:     r.Name,
 		Url:      r.Url,
 		Perms:    r.Perms,

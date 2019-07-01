@@ -7,8 +7,8 @@ import (
 )
 
 type Category struct {
-	Id       uint64
-	ParentId uint64
+	ID       uint64
+	ParentID uint64
 	Name     string
 	Icon     string
 	OrderNum int64
@@ -16,7 +16,7 @@ type Category struct {
 
 func (a *Category) Add() *errno.Errno {
 	data := map[string]interface{}{
-		"parent_id": a.ParentId,
+		"parent_id": a.ParentID,
 		"name":      a.Name,
 		"icon":      a.Icon,
 		"order_num": a.OrderNum,
@@ -29,8 +29,8 @@ func (a *Category) Add() *errno.Errno {
 
 func (a *Category) Edit() *errno.Errno {
 	data := map[string]interface{}{
-		"id":        a.Id,
-		"parent_id": a.ParentId,
+		"id":        a.ID,
+		"parent_id": a.ParentID,
 		"name":      a.Name,
 		"icon":      a.Icon,
 		"order_num": a.OrderNum,
@@ -42,7 +42,7 @@ func (a *Category) Edit() *errno.Errno {
 }
 
 func (a *Category) Get() (*model.Category, *errno.Errno) {
-	category, err := model.GetCategory(a.Id)
+	category, err := model.GetCategory(a.ID)
 	if err != nil {
 		return nil, errno.ErrDatabase
 	}
@@ -56,7 +56,7 @@ func (a *Category) GetList(w map[string]interface{}) ([]*model.CategoryInfo, *er
 	}
 	var ids []uint64
 	for _, category := range categories {
-		ids = append(ids, category.Id)
+		ids = append(ids, category.ID)
 	}
 
 	info := make([]*model.CategoryInfo, 0)
@@ -73,9 +73,9 @@ func (a *Category) GetList(w map[string]interface{}) ([]*model.CategoryInfo, *er
 			defer wg.Done()
 			categoryList.Lock.Lock()
 			defer categoryList.Lock.Unlock()
-			categoryList.IdMap[category.Id] = &model.CategoryInfo{
-				Id:         category.Id,
-				ParentId:   category.ParentId,
+			categoryList.IdMap[category.ID] = &model.CategoryInfo{
+				Id:         category.ID,
+				ParentID:   category.ParentID,
 				Name:       category.Name,
 				Icon:       category.Icon,
 				OrderNum:   category.OrderNum,
@@ -102,7 +102,7 @@ func (a *Category) GetList(w map[string]interface{}) ([]*model.CategoryInfo, *er
 
 func (a *Category) Delete() (*errno.Errno) {
 	children, err := model.GetCategoryList(map[string]interface{}{
-		"parent_id": a.Id,
+		"parent_id": a.ID,
 	})
 	if err != nil {
 		return errno.ErrDatabase
@@ -110,7 +110,7 @@ func (a *Category) Delete() (*errno.Errno) {
 	if len(children) > 0 {
 		return errno.ErrRecordHasChildren
 	}
-	if err := model.DeleteCategory(a.Id); err != nil {
+	if err := model.DeleteCategory(a.ID); err != nil {
 		return errno.ErrDatabase
 	}
 	return nil
