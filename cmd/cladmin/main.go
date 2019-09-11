@@ -3,6 +3,7 @@ package main
 import (
 	"cladmin/config"
 	"cladmin/model"
+	"cladmin/pkg/json"
 	"cladmin/pkg/oss"
 	"cladmin/pkg/redisgo"
 	v "cladmin/pkg/version"
@@ -48,6 +49,7 @@ func main() {
 	defer model.Close()
 	// init redis
 	redisgo.Init()
+	json.Init()
 	//init Casbin
 	inject.Init()
 	err := inject.LoadCasbinPolicyData()
