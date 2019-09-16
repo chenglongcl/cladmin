@@ -55,3 +55,7 @@ type UpdatePersonalRequest struct {
 type DeleteRequest struct {
 	Ids []uint64 `json:"ids" binding:"required"`
 }
+
+type LogoutLoginRequest struct {
+	Ids []uint64 `json:"ids" binding:"required"`
+}

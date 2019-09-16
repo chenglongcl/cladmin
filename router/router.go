@@ -29,6 +29,7 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 	})
 	// api for authentication functionalities
 	g.POST("/login", user.Login)
+	g.GET("/logout", middleware.AuthMiddleware(), user.Logout)
 	g.GET("/refresh", user.Refresh)
 	//api get AliyunOss signature
 	g.GET("/oss/generatesignature", oss.WebUploadSign)
@@ -44,6 +45,7 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 		apiV1.POST("/users/delete", user.Delete)
 		apiV1.GET("/users/personal", user.GetPersonalInfo)
 		apiV1.PUT("/users/updatePersonal", user.UpdatePersonal)
+		apiV1.POST("/users/logoutLogin", user.LogoutLogin)
 
 		apiV1.POST("/roles/create", role.Create)
 		apiV1.GET("/roles/get", role.Get)
