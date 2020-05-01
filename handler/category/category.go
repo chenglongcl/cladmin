@@ -1,7 +1,7 @@
 package category
 
 type CreateRequest struct {
-	ParentID uint64 `json:"parentId" binding:"exists"`
+	ParentID uint64 `json:"parentId" binding:"omitempty,number,min=0"`
 	Name     string `json:"name" binding:"required"`
 	Icon     string `json:"icon"`
 	OrderNum int64  `json:"orderNum"`
@@ -9,14 +9,14 @@ type CreateRequest struct {
 
 type UpdateRequest struct {
 	ID       uint64 `json:"categoryId" binding:"required"`
-	ParentID uint64 `json:"parentId" binding:"exists"`
+	ParentID uint64 `json:"parentId" binding:"omitempty,number,min=0"`
 	Name     string `json:"name" binding:"required"`
 	Icon     string `json:"icon"`
 	OrderNum int64  `json:"orderNum"`
 }
 
 type GetRequest struct {
-	ID uint64 `form:"id" binding:"exists"`
+	ID uint64 `form:"id" binding:"omitempty,number,min=0"`
 }
 
 type GetResponse struct {
@@ -29,5 +29,5 @@ type GetResponse struct {
 }
 
 type DeleteRequest struct {
-	ID uint64 `form:"id" binding:"exists"`
+	ID uint64 `form:"id" binding:"required"`
 }

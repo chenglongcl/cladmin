@@ -7,14 +7,14 @@ type CreateRequest struct {
 }
 
 type UpdateRequest struct {
-	ID      uint64 `json:"id" binding:"exists"`
+	ID      uint64 `json:"id" binding:"omitempty,number,min=0"`
 	Title   string `json:"title" binding:"required"`
 	Tag     string `json:"tag"`
 	Content string `json:"content"`
 }
 
 type GetRequest struct {
-	ID uint64 `form:"id" binding:"exists"`
+	ID uint64 `form:"id" binding:"omitempty,number,min=0"`
 }
 
 type GetResponse struct {

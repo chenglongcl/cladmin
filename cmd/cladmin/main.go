@@ -31,13 +31,13 @@ func main() {
 	pflag.Parse()
 	if *version {
 		info := v.Get()
-		marshalled, err := jsoniter.MarshalIndent(&info, "", "  ")
+		marshaled, err := jsoniter.MarshalIndent(&info, "", "  ")
 		if err != nil {
 			fmt.Printf("%v\n", err)
 			os.Exit(1)
 		}
 
-		fmt.Println(string(marshalled))
+		fmt.Println(string(marshaled))
 		return
 	}
 	// init config
@@ -48,7 +48,7 @@ func main() {
 	model.Init()
 	defer model.Close()
 	// init redis
-	redisgo.Init()
+	_ = redisgo.Init()
 	json.Init()
 	//init Casbin
 	inject.Init()

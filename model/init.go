@@ -62,7 +62,7 @@ func Init() {
 }
 
 func Close() {
-	database.Self.Close()
+	_ = database.Self.Close()
 	//database.Docker.Close()
 }
 
