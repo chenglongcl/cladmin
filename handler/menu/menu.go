@@ -1,7 +1,7 @@
 package menu
 
 type CreateRequest struct {
-	ParentID uint64 `json:"parentId" binding:"omitempty,number,min=0"`
+	ParentID uint64 `json:"parentId"`
 	Name     string `json:"name" binding:"required"`
 	Url      string `json:"url" binding:"omitempty"`
 	Perms    string `json:"perms"`
@@ -30,7 +30,7 @@ type GetResponse struct {
 
 type UpdateRequest struct {
 	ID       uint64 `json:"menuId" binding:"required"`
-	ParentID uint64 `json:"parentId" binding:"omitempty,number,min=0"`
+	ParentID uint64 `json:"parentId"`
 	Name     string `json:"name" binding:"required"`
 	Url      string `json:"url" binding:"required"`
 	Perms    string `json:"perms"`

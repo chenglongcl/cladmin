@@ -19,7 +19,7 @@ type UpdateRequest struct {
 }
 
 type GetRequest struct {
-	ID uint64 `form:"id" binding:"omitempty,number,min=0"`
+	ID uint64 `form:"id" binding:"required"`
 }
 
 type GetResponse struct {
