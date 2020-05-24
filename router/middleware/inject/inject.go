@@ -27,9 +27,12 @@ func Init() {
 	// 注入casbin
 	osType := runtime.GOOS
 	var path string
-	if osType == "windows" {
+	switch osType {
+	case "windows":
 		path = "conf\\rbac_model.conf"
-	} else if osType == "linux" {
+	case "linux":
+		path = "conf/rbac_model.conf"
+	case "darwin":
 		path = "conf/rbac_model.conf"
 	}
 
