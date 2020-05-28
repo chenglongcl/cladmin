@@ -12,12 +12,15 @@
 *.out
 
 /.idea
+/.DS_Store
 /conf/config.yaml
 /log/*.log
 /public/upload/*
 !/public/upload/index.html
 /cladmin
 
+/cmd/.DS_Store
+/cmd/cladmin/.DS_Store
 /cmd/cladmin/conf/config.yaml
 /cmd/cladmin/log/*.log
 /cmd/cladmin/public/upload/*
