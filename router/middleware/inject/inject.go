@@ -3,8 +3,8 @@ package inject
 import (
 	"cladmin/service/bll"
 	"github.com/casbin/casbin"
+	"github.com/chenglongcl/log"
 	"github.com/facebookgo/inject"
-	"github.com/lexkong/log"
 	"runtime"
 )
 

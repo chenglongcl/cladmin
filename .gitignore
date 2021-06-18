@@ -23,7 +23,11 @@
 /cmd/cladmin/.DS_Store
 /cmd/cladmin/conf/config.yaml
 /cmd/cladmin/log/*.log
+/pkg/.DS_Store
+/cmd/cladmin/public/.DS_Store
 /cmd/cladmin/public/upload/*
-!/cmd/cladmin/public/upload/index.html
+!/cmd/cladmin/public/upload/README.MD
+/cmd/cladmin/public/update/*
+!/cmd/cladmin/public/update/README.MD
 /cmd/cladmin/cladmin
 

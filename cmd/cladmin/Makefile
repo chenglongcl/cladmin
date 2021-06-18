@@ -12,6 +12,8 @@ ldflags="-w -X ${versionDir}.gitTag=${gitTag} -X ${versionDir}.buildDate=${build
 
 all: gotool
 	@go build -v -ldflags ${ldflags} .
+build-linux:
+	 CGO_ENABLED=0 GOOS=linux go build -v -ldflags ${ldflags} -a -installsuffix cgo -o ~/myFile/app/cladmin .
 clean:
 	rm -f cladmin
 	find . -name "[._]*.s[a-w][a-z]" | xargs -i rm -f {}

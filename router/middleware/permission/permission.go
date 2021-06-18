@@ -4,8 +4,8 @@ import (
 	. "cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/router/middleware/inject"
+	"github.com/chenglongcl/log"
 	"github.com/gin-gonic/gin"
-	"github.com/lexkong/log"
 )
 
 func CasbinMiddleware() gin.HandlerFunc {
