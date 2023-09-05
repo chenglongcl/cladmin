@@ -2,13 +2,16 @@ package client
 
 import (
 	"bytes"
-	"cladmin/model"
+	"cladmin/dal/cladmindb/cladminquery"
 	"cladmin/pkg/errno"
 	"cladmin/util"
+	"context"
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/base64"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/chenglongcl/log"
+	"github.com/duke-git/lancet/v2/random"
 	"github.com/json-iterator/go"
 	"hash"
 	"io"
@@ -32,6 +35,13 @@ type PolicyToken struct {
 	Directory   string `json:"dir"`
 }
 
+type OSSConfig struct {
+	AliYunAccessKeyID     string `json:"aliyunAccessKeyId"`
+	AliYunAccessKeySecret string `json:"aliyunAccessKeySecret"`
+	AliYunBucketName      string `json:"aliyunBucketName"`
+	AliYunEndPoint        string `json:"aliyunEndPoint"`
+}
+
 var ali *Ali
 
 type Ali struct {
@@ -39,16 +49,22 @@ type Ali struct {
 }
 
 func InitAliClient() {
-	var client *oss.Client
-	aliConfig := make(map[string]string, 0)
-	aliConfigStr, _ := model.GetConfigByParamKey("CLOUD_STORAGE_CONFIG_KEY")
-	jsoniter.UnmarshalFromString(aliConfigStr.ParamValue, &aliConfig)
-	if aliConfig["aliyunEndPoint"] != "" &&
-		aliConfig["aliyunAccessKeyId"] != "" &&
-		aliConfig["aliyunAccessKeySecret"] != "" {
-		client, _ = oss.New(aliConfig["aliyunEndPoint"],
-			aliConfig["aliyunAccessKeyId"],
-			aliConfig["aliyunAccessKeySecret"])
+	var (
+		client    *oss.Client
+		ossConfig OSSConfig
+	)
+	configModel, err := cladminquery.Q.WithContext(context.Background()).SysConfig.Where(
+		cladminquery.Q.SysConfig.ParamKey.Eq("CLOUD_STORAGE_CONFIG_KEY"),
+	).Take()
+	if err != nil || configModel == nil || configModel.ID == 0 {
+		log.Errorf(err, "get aliYunOSS config error")
+		return
+	}
+	_ = jsoniter.UnmarshalFromString(configModel.ParamValue, &ossConfig)
+	client, err = oss.New(ossConfig.AliYunEndPoint, ossConfig.AliYunAccessKeyID, ossConfig.AliYunAccessKeySecret)
+	if err != nil {
+		log.Errorf(err, "init aliYunOSS client error")
+		return
 	}
 	ali = &Ali{
 		Client: client,
@@ -67,16 +83,21 @@ func (o *Ali) UpLoad(file multipart.File, header *multipart.FileHeader) (string,
 	if o.Client == nil {
 		return "", errno.ErrAliYunOssUploadFail
 	}
-	ossConfig := make(map[string]string, 0)
-	ossConfigStr, _ := model.GetConfigByParamKey("CLOUD_STORAGE_CONFIG_KEY")
-	jsoniter.UnmarshalFromString(ossConfigStr.ParamValue, &ossConfig)
-	bucketName := ossConfig["aliyunBucketName"]
+	var ossConfig OSSConfig
+	configModel, err := cladminquery.Q.WithContext(context.Background()).SysConfig.Where(
+		cladminquery.Q.SysConfig.ParamKey.Eq("CLOUD_STORAGE_CONFIG_KEY"),
+	).Take()
+	if err != nil || configModel == nil || configModel.ID == 0 {
+		return "", errno.ErrAliYunBucket
+	}
+	_ = jsoniter.UnmarshalFromString(configModel.ParamValue, &ossConfig)
+	bucketName := ossConfig.AliYunBucketName
 	// 获取存储空间。
 	bucket, err := o.Client.Bucket(bucketName)
 	if err != nil || bucket.BucketName == "" {
 		return "", errno.ErrAliYunBucket
 	}
-	newFileName, _ := util.GenStr(16)
+	newFileName := random.RandNumeralOrLetter(16)
 	objectKey := time.Now().Format("20060102") + "/" + newFileName +
 		strings.ToLower(path.Ext(header.Filename))
 	var fileUrl string
@@ -97,29 +118,39 @@ func (o *Ali) UpLoad(file multipart.File, header *multipart.FileHeader) (string,
 }
 
 func (o *Ali) ResetClient() bool {
-	var client *oss.Client
-	aliConfig := make(map[string]string, 0)
-	aliConfigStr, _ := model.GetConfigByParamKey("CLOUD_STORAGE_CONFIG_KEY")
-	jsoniter.UnmarshalFromString(aliConfigStr.ParamValue, &aliConfig)
-	if aliConfig["aliyunEndPoint"] != "" &&
-		aliConfig["aliyunAccessKeyId"] != "" &&
-		aliConfig["aliyunAccessKeySecret"] != "" {
-		client, _ = oss.New(aliConfig["aliyunEndPoint"],
-			aliConfig["aliyunAccessKeyId"],
-			aliConfig["aliyunAccessKeySecret"])
-		o.Client = client
-		return true
+	var (
+		client    *oss.Client
+		ossConfig OSSConfig
+	)
+	configModel, err := cladminquery.Q.WithContext(context.Background()).SysConfig.Where(
+		cladminquery.Q.SysConfig.ParamKey.Eq("CLOUD_STORAGE_CONFIG_KEY"),
+	).Take()
+	if err != nil || configModel == nil || configModel.ID == 0 {
+		log.Errorf(err, "reset aliYunOSS client error")
+		return false
 	}
-	return false
+	_ = jsoniter.UnmarshalFromString(configModel.ParamValue, &ossConfig)
+	client, err = oss.New(ossConfig.AliYunEndPoint, ossConfig.AliYunAccessKeyID, ossConfig.AliYunAccessKeySecret)
+	if err != nil {
+		log.Errorf(err, "reset aliYunOSS client error")
+		return false
+	}
+	o.Client = client
+	return true
 }
 
 func (o *Ali) WebUploadSign() (*PolicyToken, *errno.Errno) {
 	accessKeyId := o.Client.Config.AccessKeyID
 	accessKeySecret := o.Client.Config.AccessKeySecret
-	ossConfig := make(map[string]interface{}, 0)
-	ossConfigStr, _ := model.GetConfigByParamKey("CLOUD_STORAGE_CONFIG_KEY")
-	jsoniter.UnmarshalFromString(ossConfigStr.ParamValue, &ossConfig)
-	bucketName := (ossConfig["aliyunBucketName"]).(string)
+	var ossConfig OSSConfig
+	configModel, err := cladminquery.Q.WithContext(context.Background()).SysConfig.Where(
+		cladminquery.Q.SysConfig.ParamKey.Eq("CLOUD_STORAGE_CONFIG_KEY"),
+	).Take()
+	if err != nil || configModel == nil || configModel.ID == 0 {
+		return nil, errno.ErrOssGenerateSignatureFail
+	}
+	_ = jsoniter.UnmarshalFromString(configModel.ParamValue, &ossConfig)
+	bucketName := ossConfig.AliYunBucketName
 	bucketInfo, _ := o.Client.GetBucketInfo(bucketName)
 	host := "http://" + bucketInfo.BucketInfo.Name + "." +
 		bucketInfo.BucketInfo.ExtranetEndpoint
@@ -139,7 +170,7 @@ func (o *Ali) WebUploadSign() (*PolicyToken, *errno.Errno) {
 	pc := PolicyConfig{}
 	pc.Expiration = tokenExpire
 	pc.Conditions = append(pc.Conditions, condition)
-	//calucate signature
+	//calculate signature
 	result, err := jsoniter.Marshal(pc)
 	if err != nil {
 		return nil, errno.ErrOssGenerateSignatureFail

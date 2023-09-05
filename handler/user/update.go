@@ -1,66 +1,76 @@
 package user
 
 import (
-	. "cladmin/handler"
+	"cladmin/dal/cladmindb/cladminquery"
+	"cladmin/handler"
+	"cladmin/pkg/auth"
 	"cladmin/pkg/errno"
 	"cladmin/router/middleware/inject"
 	"cladmin/service/userservice"
-	"cladmin/util"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gen"
+	"gorm.io/gen/field"
 )
 
-// Update update a exist user account info.
+// Update an exist user account info.
 func Update(c *gin.Context) {
 	var r UpdateRequest
 	if err := c.Bind(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	if err := util.Validate(&r); err != nil {
-		SendResponse(c, errno.ErrValidation, nil)
-		return
-	}
-	userService := userservice.User{
-		ID:         r.ID,
-		Username:   r.Username,
-		Password:   r.Password,
-		Mobile:     r.Mobile,
-		Email:      r.Email,
-		Status:     r.Status,
-		RoleIDList: r.RoleIDList,
-	}
-	errNo := userService.Edit()
+	userService := userservice.NewUserService(c)
+	userModel, errNo := userService.Get([]field.Expr{
+		cladminquery.Q.SysUser.ID,
+		cladminquery.Q.SysUser.Password,
+	}, []gen.Condition{
+		cladminquery.Q.SysUser.ID.Eq(r.ID),
+	})
 	if errNo != nil {
-		SendResponse(c, errNo, nil)
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	inject.Obj.Common.UserAPI.LoadPolicy(userService.ID)
-	SendResponse(c, nil, nil)
+	if userModel == nil || userModel.ID == 0 {
+		handler.SendResponse(c, errno.ErrUserNotFound, nil)
+		return
+	}
+	userModel.Username = r.Username
+	if r.Password != "" {
+		userModel.Password, _ = auth.Encrypt(r.Password)
+	}
+	userModel.Mobile = r.Mobile
+	userModel.Email = r.Email
+	userModel.Status = r.Status
+	if errNo = userService.Edit(userModel, r.RoleIDList); errNo != nil {
+		handler.SendResponse(c, errNo, nil)
+		return
+	}
+	_ = inject.Obj.Common.UserAPI.LoadPolicy(userService.ID)
+	handler.SendResponse(c, nil, nil)
 }
 
 func UpdatePersonal(c *gin.Context) {
 	var r UpdatePersonalRequest
 	if err := c.Bind(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	if err := util.Validate(&r); err != nil {
-		SendResponse(c, errno.ErrValidation, nil)
+	id := c.GetUint64("userID")
+	if id == 0 {
+		handler.SendResponse(c, errno.ErrNotUserExist, nil)
 		return
 	}
-	id, exist := c.Get("userID")
-	if !exist {
-		SendResponse(c, errno.ErrNotUserExist, nil)
-		return
+	userService := userservice.NewUserService(c)
+	updateData := make(map[string]interface{})
+	if r.Password != "" {
+		updateData["password"], _ = auth.Encrypt(r.Password)
 	}
-	userService := userservice.User{
-		ID:       id.(uint64),
-		Password: r.Password,
-	}
-	errNo := userService.EditPersonal()
+	errNo := userService.EditPersonal([]gen.Condition{
+		cladminquery.Q.SysUser.ID.Eq(id),
+	}, updateData)
 	if errNo != nil {
-		SendResponse(c, errNo, nil)
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	SendResponse(c, nil, nil)
+	handler.SendResponse(c, nil, nil)
 }

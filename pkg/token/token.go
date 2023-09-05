@@ -133,7 +133,7 @@ func ParseRefreshRequest(c *gin.Context) (ctx *Context, err error, tokenString s
 
 	var t string
 	// Parse the header to get the token part.
-	fmt.Sscanf(header, "Bearer %s", &t)
+	_, _ = fmt.Sscanf(header, "Bearer %s", &t)
 	ctx, err = RefreshParse(t, secret, c)
 	if err != nil {
 		return
@@ -149,13 +149,12 @@ func ParseRefreshRequest(c *gin.Context) (ctx *Context, err error, tokenString s
 		//record userToken
 		expireTime, _ := time.ParseInLocation("2006-01-02 15:04:05", expiredAt, time.Local)
 		RefreshTime, _ := time.ParseInLocation("2006-01-02 15:04:05", refreshExpiredAt, time.Local)
-		userTokenService := &usertokenservice.UserToken{
-			UserID:      ctx.ID,
-			Token:       tokenString,
-			ExpireTime:  expireTime,
-			RefreshTime: RefreshTime,
-		}
-		_ = userTokenService.RecordToken()
+		userTokenService := usertokenservice.NewUserTokenService(c)
+		userTokenService.UserID = ctx.ID
+		userTokenService.Token = tokenString
+		userTokenService.ExpireTime = expireTime
+		userTokenService.RefreshTime = RefreshTime
+		_, _ = userTokenService.RecordToken()
 	}()
 	return
 }

@@ -7,7 +7,7 @@ import (
 )
 
 type Common struct {
-	UserAPI *userservice.User `inject:""`
-	RoleAPI *roleservice.Role `inject:""`
-	MenuAPI *menuservice.Menu `inject:""`
+	UserAPI userservice.User `inject:""`
+	RoleAPI roleservice.Role `inject:""`
+	MenuAPI menuservice.Menu `inject:""`
 }

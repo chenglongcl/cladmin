@@ -1,28 +1,31 @@
 package category
 
 import (
-	. "cladmin/handler"
+	"cladmin/dal/cladmindb/cladminquery"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/service/categoryservice"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gen"
 )
 
 func Update(c *gin.Context) {
 	var r UpdateRequest
 	if err := c.Bind(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	categoryService := categoryservice.Category{
-		ID:       r.ID,
-		ParentID: r.ParentID,
-		Name:     r.Name,
-		Icon:     r.Icon,
-		OrderNum: r.OrderNum,
-	}
-	if errNo := categoryService.Edit(); errNo != nil {
-		SendResponse(c, errNo, nil)
+	categoryService := categoryservice.NewCategoryService(c)
+	updateData := make(map[string]interface{})
+	updateData["parent_id"] = r.ParentID
+	updateData["name"] = r.Name
+	updateData["icon"] = r.Icon
+	updateData["order_num"] = r.OrderNum
+	if errNo := categoryService.Edit([]gen.Condition{
+		cladminquery.Q.SysCategory.ID.Eq(r.ID),
+	}, updateData); errNo != nil {
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	SendResponse(c, nil, nil)
+	handler.SendResponse(c, nil, nil)
 }

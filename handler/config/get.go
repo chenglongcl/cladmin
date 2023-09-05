@@ -1,25 +1,30 @@
 package config
 
 import (
-	. "cladmin/handler"
+	"cladmin/dal/cladmindb/cladminquery"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/service/configservice"
 	"github.com/gin-gonic/gin"
 	"github.com/json-iterator/go"
+	"gorm.io/gen"
+	"gorm.io/gen/field"
 )
 
 func Get(c *gin.Context) {
 	var r GetRequest
 	if err := c.BindQuery(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	configService := configservice.Config{
-		ParamKey: r.Key,
-	}
-	config, errNo := configService.GetByParamKey()
+	configService := configservice.NewConfigService(c)
+	config, errNo := configService.Get([]field.Expr{
+		cladminquery.Q.SysConfig.ALL,
+	}, []gen.Condition{
+		cladminquery.Q.SysConfig.ParamKey.Eq(r.Key),
+	})
 	if errNo != nil {
-		SendResponse(c, errNo, nil)
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
 	gcr := GetCommonResponse{
@@ -30,14 +35,14 @@ func Get(c *gin.Context) {
 	}
 	switch config.Type {
 	case 1:
-		SendResponse(c, nil, GetResponseWithOneParam{
+		handler.SendResponse(c, nil, GetResponseWithOneParam{
 			GetCommonResponse: gcr,
 			ParamValue:        config.ParamValue,
 		})
 	case 2:
 		paramValue := make(map[string]interface{}, 0)
-		jsoniter.UnmarshalFromString(config.ParamValue, &paramValue)
-		SendResponse(c, nil, GetResponseWithMultipleParams{
+		_ = jsoniter.UnmarshalFromString(config.ParamValue, &paramValue)
+		handler.SendResponse(c, nil, GetResponseWithMultipleParams{
 			GetCommonResponse: gcr,
 			ParamValue:        paramValue,
 		})

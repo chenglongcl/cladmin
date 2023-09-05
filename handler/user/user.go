@@ -1,13 +1,18 @@
 package user
 
+type LoginRequest struct {
+	Username string `json:"username" binding:"required,min=1,max=32"`
+	Password string `json:"password" binding:"required,min=6,max=128"`
+}
+
 type CreateRequest struct {
-	Username     string  `json:"username" binding:"required" validate:"min=1,max=32"`
-	Password     string  `json:"password" binding:"required" validate:"min=6,max=128"`
-	Mobile       string  `json:"mobile" validate:"numeric,max=11"`
-	Email        string  `json:"email"`
-	Status       int64   `json:"status"`
-	CreateUserID uint64  `json:"createUserId"`
-	RoleIdList   []int64 `json:"roleIdList"`
+	Username     string   `json:"username" binding:"required,min=1,max=32"`
+	Password     string   `json:"password" binding:"required,min=6,max=128"`
+	Mobile       string   `json:"mobile" binding:"numeric,max=11"`
+	Email        string   `json:"email" binding:"email"`
+	Status       int32    `json:"status"`
+	CreateUserID uint64   `json:"createUserId"`
+	RoleIdList   []uint64 `json:"roleIdList"`
 }
 
 type CreateResponse struct {
@@ -34,18 +39,18 @@ type GetResponse struct {
 	CreateUserID uint64   `json:"createUserId"`
 	Email        string   `json:"email"`
 	Mobile       string   `json:"mobile"`
-	Status       int64    `json:"status"`
+	Status       int32    `json:"status"`
 	RoleIDList   []uint64 `json:"roleIdList"`
 }
 
 type UpdateRequest struct {
-	ID         uint64  `json:"userId" binding:"required"`
-	Username   string  `json:"username" binding:"required"`
-	Password   string  `json:"password"`
-	Mobile     string  `json:"mobile" validate:"numeric,max=11"`
-	Email      string  `json:"email" validate:"email"`
-	Status     int64   `json:"status"`
-	RoleIDList []int64 `json:"roleIdList" binding:"required"`
+	ID         uint64   `json:"userId" binding:"required"`
+	Username   string   `json:"username" binding:"required,min=1,max=32"`
+	Password   string   `json:"password"`
+	Mobile     string   `json:"mobile" binding:"numeric,max=11"`
+	Email      string   `json:"email" binding:"email"`
+	Status     int32    `json:"status"`
+	RoleIDList []uint64 `json:"roleIdList" binding:"required"`
 }
 
 type UpdatePersonalRequest struct {

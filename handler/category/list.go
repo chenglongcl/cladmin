@@ -1,18 +1,38 @@
 package category
 
 import (
-	. "cladmin/handler"
+	"cladmin/dal/cladmindb/cladminquery"
+	"cladmin/handler"
+	"cladmin/service"
 	"cladmin/service/categoryservice"
+	"cladmin/util"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gen"
+	"gorm.io/gen/field"
 )
 
 func List(c *gin.Context) {
-	categoryService := categoryservice.Category{}
-	w := map[string]interface{}{}
-	info, errNo := categoryService.GetList(w)
+	categoryService := categoryservice.NewCategoryService(c)
+	infos, _, errNo := categoryService.InfoList(&service.ListParams{
+		PS: util.PageSetting{},
+		Options: struct {
+			WithoutCount  bool
+			Scenes        string
+			CustomDBOrder string
+			CustomFunc    func() interface{}
+		}{WithoutCount: true},
+		Fields: []field.Expr{
+			cladminquery.Q.SysCategory.ALL,
+		},
+		Conditions: []gen.Condition{},
+		Orders: []field.Expr{
+			cladminquery.Q.SysCategory.ParentID,
+			cladminquery.Q.SysCategory.OrderNum,
+		},
+	})
 	if errNo != nil {
-		SendResponse(c, errNo, nil)
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	SendResponse(c, nil, info)
+	handler.SendResponse(c, nil, infos)
 }

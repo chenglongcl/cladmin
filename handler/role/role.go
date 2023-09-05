@@ -1,17 +1,17 @@
 package role
 
 type CreateRequest struct {
-	RoleName     string  `json:"roleName" binding:"required" validate:"min=1"`
-	Remark       string  `json:"remark"`
-	CreateUserID uint64  `json:"createUserId" validate:"min=1"`
-	MenuIDList   []int64 `json:"menuIdList" binding:"required"`
+	RoleName     string   `json:"roleName" binding:"required" validate:"min=1"`
+	Remark       string   `json:"remark"`
+	CreateUserID uint64   `json:"createUserId" validate:"min=1"`
+	MenuIDList   []uint64 `json:"menuIdList" binding:"required"`
 }
 
 type UpdateRequest struct {
-	ID         uint64  `json:"roleId" binding:"required"`
-	RoleName   string  `json:"roleName" binding:"required" validate:"min=1"`
-	Remark     string  `json:"remark"`
-	MenuIDList []int64 `json:"menuIdList" binding:"required"`
+	ID         uint64   `json:"roleId" binding:"required"`
+	RoleName   string   `json:"roleName" binding:"required" validate:"min=1"`
+	Remark     string   `json:"remark"`
+	MenuIDList []uint64 `json:"menuIdList" binding:"required"`
 }
 
 type GetRequest struct {
@@ -19,12 +19,12 @@ type GetRequest struct {
 }
 
 type GetResponse struct {
-	ID           uint64  `json:"roleId"`
-	RoleName     string  `json:"roleName"`
-	Remark       string  `json:"remark"`
-	CreateUserID uint64  `json:"createUserId"`
-	MenuIDList   []int64 `json:"menuIdList"`
-	CreateTime   string  `json:"createTime"`
+	ID           uint64   `json:"roleId"`
+	RoleName     string   `json:"roleName"`
+	Remark       string   `json:"remark"`
+	CreateUserID uint64   `json:"createUserId"`
+	MenuIDList   []uint64 `json:"menuIdList"`
+	CreateTime   string   `json:"createTime"`
 }
 
 type ListRequest struct {

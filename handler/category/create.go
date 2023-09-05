@@ -1,7 +1,7 @@
 package category
 
 import (
-	. "cladmin/handler"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/service/categoryservice"
 	"github.com/gin-gonic/gin"
@@ -10,18 +10,17 @@ import (
 func Create(c *gin.Context) {
 	var r CreateRequest
 	if err := c.Bind(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	categoryService := &categoryservice.Category{
-		ParentID: r.ParentID,
-		Name:     r.Name,
-		Icon:     r.Icon,
-		OrderNum: r.OrderNum,
-	}
-	if errNo := categoryService.Add(); errNo != nil {
-		SendResponse(c, errNo, nil)
+	categoryService := categoryservice.NewCategoryService(c)
+	categoryService.ParentID = r.ParentID
+	categoryService.Name = r.Name
+	categoryService.Icon = r.Icon
+	categoryService.OrderNum = r.OrderNum
+	if _, errNo := categoryService.Add(); errNo != nil {
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	SendResponse(c, nil, nil)
+	handler.SendResponse(c, nil, nil)
 }

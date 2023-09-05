@@ -8,7 +8,7 @@ type GetCommonResponse struct {
 	ID       uint64 `json:"configId"`
 	ParamKey string `json:"paramKey"`
 	Remark   string `json:"remark"`
-	Type     int64  `json:"type"`
+	Type     int32  `json:"type"`
 }
 
 type GetResponseWithOneParam struct {
@@ -25,7 +25,7 @@ type UpdateRequest struct {
 	ID         uint64 `json:"configId" binding:"required"`
 	ParamKey   string `json:"paramKey"`
 	ParamValue string `json:"paramValue"`
-	Status     int64  `json:"status"`
+	Status     int32  `json:"status"`
 	Remark     string `json:"remark"`
-	Type       int64  `json:"type"`
+	Type       int32  `json:"type"`
 }

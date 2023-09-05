@@ -23,6 +23,7 @@ var (
 	ErrUserExist         = &Errno{Code: 20105, Message: "用户名已存在"}
 	ErrNotUserExist      = &Errno{Code: 20106, Message: "无效用户"}
 	ErrDisabledUser      = &Errno{Code: 20107, Message: "用户已禁用"}
+	ErrRoleExist         = &Errno{Code: 20108, Message: "角色名已存在"}
 
 	//upload errors
 	ErrUploadFile               = &Errno{Code: 20201, Message: "Error uploadFile"}

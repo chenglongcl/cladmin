@@ -1,32 +1,37 @@
 package category
 
 import (
-	. "cladmin/handler"
+	"cladmin/dal/cladmindb/cladminquery"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/service/categoryservice"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gen"
+	"gorm.io/gen/field"
 )
 
 func Get(c *gin.Context) {
 	var r GetRequest
 	if err := c.BindQuery(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	categoryService := categoryservice.Category{
-		ID: r.ID,
-	}
-	category, errNo := categoryService.Get()
+	categoryService := categoryservice.NewCategoryService(c)
+	categoryModel, errNo := categoryService.Get([]field.Expr{
+		cladminquery.Q.SysCategory.ALL,
+	}, []gen.Condition{
+		cladminquery.Q.SysCategory.ID.Eq(r.ID),
+	})
 	if errNo != nil {
-		SendResponse(c, errNo, nil)
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	SendResponse(c, nil, GetResponse{
-		ID:         category.ID,
-		ParentID:   category.ParentID,
-		Name:       category.Name,
-		Icon:       category.Icon,
-		OrderNum:   category.OrderNum,
-		CreateTime: category.CreatedAt.Format("2006-01-02 15:04:05"),
+	handler.SendResponse(c, nil, GetResponse{
+		ID:         categoryModel.ID,
+		ParentID:   categoryModel.ParentID,
+		Name:       categoryModel.Name,
+		Icon:       categoryModel.Icon,
+		OrderNum:   categoryModel.OrderNum,
+		CreateTime: categoryModel.CreatedAt.Format("2006-01-02 15:04:05"),
 	})
 }

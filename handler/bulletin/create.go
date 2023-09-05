@@ -1,31 +1,25 @@
 package bulletin
 
 import (
-	. "cladmin/handler"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/service/bulletinservice"
-	"cladmin/util"
 	"github.com/gin-gonic/gin"
 )
 
 func Create(c *gin.Context) {
 	var r CreateRequest
 	if err := c.Bind(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	if err := util.Validate(&r); err != nil {
-		SendResponse(c, errno.ErrValidation, nil)
+	bulletinService := bulletinservice.NewBulletinService(c)
+	bulletinService.Title = r.Title
+	bulletinService.Tag = r.Tag
+	bulletinService.Content = r.Content
+	if _, errNo := bulletinService.Add(); errNo != nil {
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	publicNoticeService := &bulletinservice.Bulletin{
-		Title:   r.Title,
-		Tag:     r.Tag,
-		Content: r.Content,
-	}
-	if errNo := publicNoticeService.Add(); errNo != nil {
-		SendResponse(c, errNo, nil)
-		return
-	}
-	SendResponse(c, nil, nil)
+	handler.SendResponse(c, nil, nil)
 }

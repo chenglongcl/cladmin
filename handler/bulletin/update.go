@@ -1,32 +1,30 @@
 package bulletin
 
 import (
-	. "cladmin/handler"
+	"cladmin/dal/cladmindb/cladminquery"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/service/bulletinservice"
-	"cladmin/util"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gen"
 )
 
 func Update(c *gin.Context) {
 	var r UpdateRequest
 	if err := c.Bind(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	if err := util.Validate(&r); err != nil {
-		SendResponse(c, errno.ErrValidation, nil)
+	bulletinService := bulletinservice.NewBulletinService(c)
+	updateData := make(map[string]interface{})
+	updateData["title"] = r.Title
+	updateData["tag"] = r.Tag
+	updateData["content"] = r.Content
+	if errNo := bulletinService.Edit([]gen.Condition{
+		cladminquery.Q.SysBulletin.ID.Eq(r.ID),
+	}, updateData); errNo != nil {
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	publicNoticeService := &bulletinservice.Bulletin{
-		ID:      r.ID,
-		Title:   r.Title,
-		Tag:     r.Tag,
-		Content: r.Content,
-	}
-	if errNo := publicNoticeService.Edit(); errNo != nil {
-		SendResponse(c, errNo, nil)
-		return
-	}
-	SendResponse(c, nil, nil)
+	handler.SendResponse(c, nil, nil)
 }

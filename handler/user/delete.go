@@ -1,51 +1,49 @@
 package user
 
 import (
-	. "cladmin/handler"
+	"cladmin/dal/cladmindb/cladminquery"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/router/middleware/inject"
 	"cladmin/service/userservice"
-	"cladmin/util"
 	"github.com/gin-gonic/gin"
-	"sync"
+	"golang.org/x/sync/errgroup"
+	"gorm.io/gen"
+	"gorm.io/gen/field"
 )
 
 func Delete(c *gin.Context) {
 	var r DeleteRequest
 	if err := c.Bind(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	if err := util.Validate(&r); err != nil {
-		SendResponse(c, errno.ErrValidation, nil)
+	errGroup := &errgroup.Group{}
+	for _, _id := range r.Ids {
+		id := _id
+		errGroup.Go(func() error {
+			userService := userservice.NewUserService(c)
+			userModel, errNo := userService.Get([]field.Expr{
+				cladminquery.Q.SysUser.ALL,
+			}, []gen.Condition{
+				cladminquery.Q.SysUser.ID.Eq(id),
+			})
+			if errNo != nil {
+				return errNo
+			}
+			if userModel == nil || userModel.ID == 0 {
+				return errno.ErrRecordNotFound
+			}
+			if errNo = userService.Delete(userModel); errNo != nil {
+				return errNo
+			}
+			inject.Obj.Enforcer.DeleteUser(userModel.Username)
+			return nil
+		})
+	}
+	if errNo := errGroup.Wait(); errNo != nil {
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	wg := sync.WaitGroup{}
-	finished := make(chan bool, 1)
-	errorChanel := make(chan *errno.Errno, 1)
-	for _, id := range r.Ids {
-		wg.Add(1)
-		go func(id uint64) {
-			defer wg.Done()
-			userService := userservice.User{
-				ID: id,
-			}
-			user, _ := userService.Get()
-			if errNo := userService.Delete(); errNo != nil {
-				errorChanel <- errNo
-				return
-			}
-			inject.Obj.Enforcer.DeleteUser(user.Username)
-		}(id)
-	}
-	go func() {
-		wg.Wait()
-		close(finished)
-	}()
-	select {
-	case <-finished:
-		SendResponse(c, nil, nil)
-	case errNo := <-errorChanel:
-		SendResponse(c, errNo, nil)
-	}
+	handler.SendResponse(c, nil, nil)
 }

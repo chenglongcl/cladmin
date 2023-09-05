@@ -1,47 +1,37 @@
 package article
 
 import (
-	. "cladmin/handler"
+	"cladmin/dal/cladmindb/cladminquery"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/service/articleservice"
-	"cladmin/util"
 	"github.com/gin-gonic/gin"
-	"sync"
+	"golang.org/x/sync/errgroup"
+	"gorm.io/gen"
 )
 
 func Delete(c *gin.Context) {
 	var r DeleteRequest
 	if err := c.Bind(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	if err := util.Validate(&r); err != nil {
-		SendResponse(c, errno.ErrValidation, nil)
+	errGroup := &errgroup.Group{}
+	for _, _id := range r.Ids {
+		id := _id
+		errGroup.Go(func() error {
+			articleService := articleservice.NewArticleService(c)
+			if errNo := articleService.Delete([]gen.Condition{
+				cladminquery.Q.SysArticle.ID.Eq(id),
+			}); errNo != nil {
+				return errNo
+			}
+			return nil
+		})
+	}
+	if errNo := errGroup.Wait(); errNo != nil {
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	finished := make(chan bool, 1)
-	errorChanel := make(chan *errno.Errno, 1)
-	wg := sync.WaitGroup{}
-	for _, id := range r.Ids {
-		wg.Add(1)
-		go func(id uint64) {
-			defer wg.Done()
-			articleService := articleservice.Article{
-				ID: id,
-			}
-			if errNo := articleService.Delete(); errNo != nil {
-				errorChanel <- errNo
-			}
-		}(id)
-	}
-	go func() {
-		wg.Wait()
-		close(finished)
-	}()
-	select {
-	case errNo := <-errorChanel:
-		SendResponse(c, errNo, nil)
-	case <-finished:
-		SendResponse(c, nil, nil)
-	}
+	handler.SendResponse(c, nil, nil)
 }

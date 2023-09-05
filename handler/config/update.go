@@ -1,29 +1,32 @@
 package config
 
 import (
-	. "cladmin/handler"
+	"cladmin/dal/cladmindb/cladminquery"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/service/configservice"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gen"
 )
 
 func Update(c *gin.Context) {
 	var r UpdateRequest
 	if err := c.Bind(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	configService := configservice.Config{
-		ID:         r.ID,
-		ParamKey:   r.ParamKey,
-		ParamValue: r.ParamValue,
-		Status:     r.Status,
-		Type:       r.Type,
-		Remark:     r.Remark,
-	}
-	if errNo := configService.Edit(); errNo != nil {
-		SendResponse(c, errNo, nil)
+	configService := configservice.NewConfigService(c)
+	updateData := make(map[string]interface{})
+	updateData["param_key"] = r.ParamKey
+	updateData["param_value"] = r.ParamValue
+	updateData["status"] = r.Status
+	updateData["type"] = r.Type
+	updateData["remark"] = r.Remark
+	if errNo := configService.Edit([]gen.Condition{
+		cladminquery.Q.SysConfig.ID.Eq(r.ID),
+	}, updateData); errNo != nil {
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	SendResponse(c, nil, nil)
+	handler.SendResponse(c, nil, nil)
 }

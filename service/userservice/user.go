@@ -1,95 +1,182 @@
 package userservice
 
 import (
-	"cladmin/model"
+	"cladmin/dal/cladmindb/cladminentity"
+	"cladmin/dal/cladmindb/cladminmodel"
+	"cladmin/dal/cladmindb/cladminquery"
 	"cladmin/pkg/auth"
 	"cladmin/pkg/errno"
+	"cladmin/pkg/gormx"
+	"cladmin/service"
 	"cladmin/util"
+	"context"
 	"fmt"
 	"github.com/casbin/casbin"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gen"
+	"gorm.io/gen/field"
 	"sync"
 )
 
-type User struct {
-	ID           uint64
-	Username     string
-	Password     string
-	Mobile       string
-	Email        string
-	Status       int64
-	CreateUserID uint64
-	RoleIDList   []int64
-	Enforcer     *casbin.Enforcer `inject:""`
+type user struct {
+	ID             uint64
+	Username       string
+	Password       string
+	Mobile         string
+	Email          string
+	Status         int32
+	CreateUserID   uint64
+	RoleIDList     []uint64
+	Enforcer       *casbin.Enforcer `inject:""`
+	serviceOptions *service.Options
+	ctx            *gin.Context
 }
 
-func (a *User) Add() (id uint64, errNo *errno.Errno) {
-	if userExist, _ := model.CheckUserByUsername(a.Username); userExist {
-		return 0, errno.ErrUserExist
+type User = *user
+
+func NewUserService(ctx *gin.Context, opts ...service.Option) User {
+	opt := new(service.Options)
+	for _, f := range opts {
+		f(opt)
 	}
+	return &user{
+		serviceOptions: opt,
+		ctx:            ctx,
+	}
+}
+
+func (a User) Add() (*cladminmodel.SysUser, *errno.Errno) {
+	var (
+		checkUserModel *cladminmodel.SysUser
+		roleModels     []*cladminmodel.SysRole
+		err            error
+	)
+	//1.检查用户名是否存在
+	checkUserModel, err = cladminquery.Q.WithContext(a.ctx).SysUser.Select(
+		cladminquery.Q.SysUser.ID,
+	).Where(
+		cladminquery.Q.SysUser.Username.Eq(a.Username),
+	).Take()
+	if errNo := gormx.HandleError(err); errNo != nil {
+		return nil, errNo
+	}
+	if checkUserModel != nil && checkUserModel.ID > 0 {
+		return nil, errno.ErrUserExist
+	}
+	//2.查询目标角色
+	roleModels, err = cladminquery.Q.WithContext(a.ctx).SysRole.Where(
+		cladminquery.Q.SysRole.ID.In(a.RoleIDList...),
+	).Find()
+	if errNo := gormx.HandleError(err); errNo != nil {
+		return nil, errNo
+	}
+	//3.创建用户
 	password, _ := auth.Encrypt(a.Password)
-	data := map[string]interface{}{
-		"username":       a.Username,
-		"password":       password,
-		"mobile":         a.Mobile,
-		"email":          a.Email,
-		"status":         a.Status,
-		"create_user_id": a.CreateUserID,
-		"role_id":        a.RoleIDList,
+	userModel := &cladminmodel.SysUser{
+		Username:     a.Username,
+		Password:     password,
+		Email:        a.Email,
+		Mobile:       a.Mobile,
+		Status:       a.Status,
+		CreateUserID: a.CreateUserID,
+		Roles:        roleModels,
 	}
-	id, err := model.AddUser(data)
-	if err != nil {
-		return 0, errno.ErrDatabase
+	//3.1 跳过自动创建关联menu
+	//见https://gorm.io/zh_CN/docs/associations.html 跳过自动创建、更新many2many
+	err = cladminquery.Q.WithContext(a.ctx).SysUser.
+		Omit(cladminquery.Q.SysUser.Roles.Field("*")).Create(userModel)
+	if errNo := gormx.HandleError(err); errNo != nil {
+		return nil, errNo
 	}
-	return id, nil
+	return userModel, nil
 }
 
-func (a *User) Get() (user *model.User, errNo *errno.Errno) {
-	user, err := model.GetUser(a.ID)
-	if err != nil {
-		return nil, errno.ErrDatabase
+func (a User) Edit(userModel *cladminmodel.SysUser, roleIDs []uint64) *errno.Errno {
+	var (
+		checkUserModel *cladminmodel.SysUser
+		roleModels     []*cladminmodel.SysRole
+		err            error
+	)
+	if userModel == nil || userModel.ID == 0 {
+		return errno.ErrValidation
 	}
-	return user, nil
+	//1.检查用户名是否存在
+	checkUserModel, err = cladminquery.Q.WithContext(a.ctx).SysUser.Select(
+		cladminquery.Q.SysUser.ID,
+	).Where(
+		cladminquery.Q.SysUser.Username.Eq(userModel.Username),
+	).Take()
+	if errNo := gormx.HandleError(err); errNo != nil {
+		return errNo
+	}
+	if checkUserModel != nil && checkUserModel.ID > 0 && checkUserModel.ID != userModel.ID {
+		return errno.ErrUserExist
+	}
+	//2.查询目标角色
+	roleModels, err = cladminquery.Q.WithContext(a.ctx).SysRole.Where(
+		cladminquery.Q.SysRole.ID.In(roleIDs...),
+	).Find()
+	if errNo := gormx.HandleError(err); errNo != nil {
+		return errNo
+	}
+	//3.删除之前的用户&角色之间的引用
+	err = cladminquery.Q.SysUser.Roles.Model(userModel).Delete(userModel.Roles...)
+	if errNo := gormx.HandleError(err); errNo != nil {
+		return errNo
+	}
+	//4.更新用户
+	userModel.Roles = roleModels
+	err = cladminquery.Q.WithContext(a.ctx).SysUser.Save(userModel)
+	if errNo := gormx.HandleError(err); errNo != nil {
+		return errNo
+	}
+	return nil
 }
 
-func (a *User) GetList(ps util.PageSetting) ([]*model.UserInfo, uint64, *errno.Errno) {
-	info := make([]*model.UserInfo, 0)
-	w := make(map[string]interface{})
-	if a.Username != "" {
-		w["username like"] = "%" + a.Username + "%"
-	}
-	users, count, err := model.GetUserList(w, ps.Offset, ps.Limit)
-	if err != nil {
-		return nil, count, errno.ErrDatabase
+func (a User) EditPersonal(conditions []gen.Condition, data map[string]interface{}) *errno.Errno {
+	_, err := cladminquery.Q.WithContext(a.ctx).SysUser.Where(conditions...).Updates(data)
+	return gormx.HandleError(err)
+}
+
+func (a User) Get(fields []field.Expr, conditions []gen.Condition) (*cladminmodel.SysUser, *errno.Errno) {
+	userModel, err := cladminquery.Q.WithContext(a.ctx).SysUser.
+		Preload(cladminquery.Q.SysUser.Roles).Select(fields...).Where(conditions...).Take()
+	return userModel, gormx.HandleError(err)
+}
+
+func (a User) InfoList(listParams *service.ListParams) ([]*cladminentity.UserInfo, uint64, *errno.Errno) {
+	userModels, count, err := a.List(listParams)
+	if errNo := gormx.HandleError(err); errNo != nil {
+		return nil, uint64(count), errNo
 	}
 	var ids []uint64
-	for _, user := range users {
-		ids = append(ids, user.ID)
+	for _, userModel := range userModels {
+		ids = append(ids, userModel.ID)
 	}
-
+	info := make([]*cladminentity.UserInfo, 0)
 	wg := sync.WaitGroup{}
-	userList := model.UserList{
+	userList := cladminentity.UserList{
 		Lock:  new(sync.Mutex),
-		IdMap: make(map[uint64]*model.UserInfo, len(users)),
+		IdMap: make(map[uint64]*cladminentity.UserInfo, len(userModels)),
 	}
 	finished := make(chan bool, 1)
-
-	for _, u := range users {
+	for _, userModel := range userModels {
 		wg.Add(1)
-		go func(u *model.User) {
+		go func(user *cladminmodel.SysUser) {
 			defer wg.Done()
 			userList.Lock.Lock()
 			defer userList.Lock.Unlock()
-			userList.IdMap[u.ID] = &model.UserInfo{
-				ID:           u.ID,
-				Username:     u.Username,
-				Mobile:       u.Mobile,
-				Email:        u.Email,
-				Status:       u.Status,
-				CreateUserID: u.CreateUserID,
-				CreateTime:   u.CreatedAt.Format("2006-01-02 15:04:05"),
-				UpdateTime:   u.UpdatedAt.Format("2006-01-02 15:04:05"),
+			userList.IdMap[user.ID] = &cladminentity.UserInfo{
+				ID:           user.ID,
+				Username:     user.Username,
+				Mobile:       user.Mobile,
+				Email:        user.Email,
+				Status:       user.Status,
+				CreateUserID: user.CreateUserID,
+				CreateTime:   user.CreatedAt.Format("2006-01-02 15:04:05"),
+				UpdateTime:   user.UpdatedAt.Format("2006-01-02 15:04:05"),
 			}
-		}(u)
+		}(userModel)
 	}
 	go func() {
 		wg.Wait()
@@ -98,70 +185,55 @@ func (a *User) GetList(ps util.PageSetting) ([]*model.UserInfo, uint64, *errno.E
 	select {
 	case <-finished:
 	}
-
 	for _, id := range ids {
 		info = append(info, userList.IdMap[id])
 	}
-	return info, count, nil
+	return info, uint64(count), nil
 }
 
-func (a *User) Edit() *errno.Errno {
-	if userExist, _ := model.CheckUserUsernameID(a.Username, a.ID); userExist {
-		return errno.ErrUserExist
+func (a User) List(listParams *service.ListParams) (result []*cladminmodel.SysUser, count int64, err error) {
+	qc := cladminquery.Q.WithContext(a.ctx).SysUser
+	if listParams.Options.CustomDBOrder != "" {
+		qc = cladminquery.Q.SysUser.WithContext(a.ctx)
+		qc.ReplaceDB(qc.UnderlyingDB().Order(listParams.Options.CustomDBOrder))
 	}
-	var password string
-	if a.Password != "" {
-		password, _ = auth.Encrypt(a.Password)
+	base := qc.Select(listParams.Fields...).Where(listParams.Conditions...).Order(listParams.Orders...)
+	offset, limit := util.MysqlPagination(listParams.PS)
+	if !listParams.Options.WithoutCount {
+		result, count, err = base.FindByPage(offset, limit)
+	} else {
+		if limit == -1 {
+			result, err = base.Find()
+		} else {
+			result, err = base.Offset(offset).Limit(limit).Find()
+		}
 	}
-	data := map[string]interface{}{
-		"id":       a.ID,
-		"username": a.Username,
-		"password": password,
-		"mobile":   a.Mobile,
-		"email":    a.Email,
-		"status":   a.Status,
-		"role_id":  a.RoleIDList,
-	}
-	err := model.EditUser(data)
-	if err != nil {
-		return errno.ErrDatabase
-	}
-	return nil
+	return
 }
 
-func (a *User) EditPersonal() *errno.Errno {
-	var password string
-	if a.Password != "" {
-		password, _ = auth.Encrypt(a.Password)
-	}
-	data := map[string]interface{}{
-		"id":       a.ID,
-		"password": password,
-	}
-	err := model.EditPersonal(data)
+func (a User) Delete(userModel *cladminmodel.SysUser) *errno.Errno {
+	_, err := cladminquery.Q.WithContext(a.ctx).SysUser.Unscoped().Select(field.AssociationFields).Delete(userModel)
 	if err != nil {
-		return errno.ErrDatabase
-	}
-	return nil
-}
-
-func (a *User) Delete() *errno.Errno {
-	err := model.DeleteUser(a.ID)
-	if err != nil {
-		return errno.ErrDatabase
+		return gormx.HandleError(err)
 	}
 	return nil
 }
 
 // LoadAllPolicy 加载所有的用户策略
-func (a *User) LoadAllPolicy() error {
-	users, err := model.GetUsersAll()
+func (a User) LoadAllPolicy() error {
+	var ctx context.Context
+	if a.ctx == nil {
+		ctx = context.Background()
+	} else {
+		ctx = a.ctx
+	}
+	userModels, err := cladminquery.Q.WithContext(ctx).SysUser.Preload(cladminquery.Q.SysUser.Roles).Find()
 	if err != nil {
 		return err
 	}
-	for _, user := range users {
-		if len(user.Role) != 0 {
-			err = a.LoadPolicy(user.ID)
+	for _, userModel := range userModels {
+		if len(userModel.Roles) != 0 {
+			err = a.LoadPolicy(userModel.ID)
 			if err != nil {
 				return err
 			}
@@ -172,14 +244,22 @@ func (a *User) LoadAllPolicy() error {
 }
 
 // LoadPolicy 加载用户权限策略
-func (a *User) LoadPolicy(id uint64) error {
-	user, err := model.GetUser(id)
+func (a User) LoadPolicy(id uint64) error {
+	var ctx context.Context
+	if a.ctx == nil {
+		ctx = context.Background()
+	} else {
+		ctx = a.ctx
+	}
+	userModel, err := cladminquery.Q.WithContext(ctx).SysUser.
+		Preload(cladminquery.Q.SysUser.Roles).
+		Where(cladminquery.Q.SysUser.ID.Eq(id)).Take()
 	if err != nil {
 		return err
 	}
-	a.Enforcer.DeleteRolesForUser(user.Username)
-	for _, ro := range user.Role {
-		a.Enforcer.AddRoleForUser(user.Username, ro.RoleName)
+	a.Enforcer.DeleteRolesForUser(userModel.Username)
+	for _, role := range userModel.Roles {
+		a.Enforcer.AddRoleForUser(userModel.Username, role.RoleName)
 	}
 	fmt.Println("更新角色权限关系", a.Enforcer.GetGroupingPolicy())
 	return nil

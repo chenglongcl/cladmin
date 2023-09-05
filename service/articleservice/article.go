@@ -1,102 +1,102 @@
 package articleservice
 
 import (
-	"cladmin/model"
+	"cladmin/dal/cladmindb/cladminentity"
+	"cladmin/dal/cladmindb/cladminmodel"
+	"cladmin/dal/cladmindb/cladminquery"
 	"cladmin/pkg/errno"
+	"cladmin/pkg/gormx"
+	"cladmin/service"
 	"cladmin/util"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gen"
+	"gorm.io/gen/field"
 	"sync"
 	"time"
 )
 
-type Article struct {
-	ID          uint64
-	UserID      uint64
-	CateID      uint64
-	Title       string
-	Thumb       string
-	Content     string
-	ReleaseTime string
+type article struct {
+	ID             uint64
+	UserID         uint64
+	CateID         uint64
+	Title          string
+	Thumb          string
+	Content        string
+	ReleaseTime    string
+	serviceOptions *service.Options
+	ctx            *gin.Context
 }
 
-func (a *Article) Add() *errno.Errno {
-	data := map[string]interface{}{
-		"user_id":      a.UserID,
-		"cate_id":      a.CateID,
-		"title":        a.Title,
-		"thumb":        a.Thumb,
-		"content":      a.Content,
-		"release_time": time.Now().Format("2006-01-02 15:03:04"),
+type Article = *article
+
+func NewArticleService(ctx *gin.Context, opts ...service.Option) Article {
+	opt := new(service.Options)
+	for _, f := range opts {
+		f(opt)
 	}
-	if err := model.AddArticle(data); err != nil {
-		return errno.ErrDatabase
+	return &article{
+		serviceOptions: opt,
+		ctx:            ctx,
 	}
-	return nil
 }
 
-func (a *Article) Edit() *errno.Errno {
-	data := map[string]interface{}{
-		"id":           a.ID,
-		"user_id":      a.UserID,
-		"cate_id":      a.CateID,
-		"title":        a.Title,
-		"thumb":        a.Thumb,
-		"content":      a.Content,
-		"release_time": a.ReleaseTime,
+func (a Article) Add() (*cladminmodel.SysArticle, *errno.Errno) {
+	articleModel := &cladminmodel.SysArticle{
+		UserID:      a.UserID,
+		CateID:      a.CateID,
+		Title:       a.Title,
+		Thumb:       a.Thumb,
+		Content:     a.Content,
+		ReleaseTime: time.Now().Format("2006-01-02 15:04:05"),
 	}
-	if err := model.EditArticle(data); err != nil {
-		return errno.ErrDatabase
+	err := cladminquery.Q.WithContext(a.ctx).SysArticle.Create(articleModel)
+	if errNo := gormx.HandleError(err); errNo != nil {
+		return nil, errNo
 	}
-	return nil
+	return articleModel, nil
 }
 
-func (a *Article) Get() (*model.Article, *errno.Errno) {
-	article, err := model.GetArticle(a.ID)
-	if err != nil {
-		return nil, errno.ErrDatabase
-	}
-	return article, nil
+func (a Article) Edit(conditions []gen.Condition, data map[string]interface{}) *errno.Errno {
+	_, err := cladminquery.Q.WithContext(a.ctx).SysArticle.Where(conditions...).Updates(data)
+	return gormx.HandleError(err)
 }
 
-func (a *Article) GetList(ps util.PageSetting) ([]*model.ArticleInfo, uint64, *errno.Errno) {
-	w := make(map[string]interface{})
-	if a.Title != "" {
-		w["title like"] = "%" + a.Title + "%"
-	}
-	if a.CateID != 0 {
-		w["cate_id"] = a.CateID
-	}
-	articles, count, err := model.GetArticleList(w, ps.Offset, ps.Limit)
-	if err != nil {
-		return nil, count, errno.ErrDatabase
+func (a Article) Get(fields []field.Expr, conditions []gen.Condition) (*cladminmodel.SysArticle, *errno.Errno) {
+	articleModel, err := cladminquery.Q.WithContext(a.ctx).SysArticle.Select(fields...).Where(conditions...).Take()
+	return articleModel, gormx.HandleError(err)
+}
+
+func (a Article) InfoList(listParams *service.ListParams) ([]*cladminentity.ArticleInfo, uint64, *errno.Errno) {
+	articleModels, count, err := a.List(listParams)
+	if errNo := gormx.HandleError(err); errNo != nil {
+		return nil, uint64(count), errNo
 	}
 	var ids []uint64
-	for _, article := range articles {
-		ids = append(ids, article.ID)
+	for _, articleModel := range articleModels {
+		ids = append(ids, articleModel.ID)
 	}
-
-	info := make([]*model.ArticleInfo, 0)
+	info := make([]*cladminentity.ArticleInfo, 0)
 	wg := sync.WaitGroup{}
-	articleList := model.ArticleList{
+	articleList := cladminentity.ArticleList{
 		Lock:  new(sync.Mutex),
-		IdMap: make(map[uint64]*model.ArticleInfo, len(articles)),
+		IdMap: make(map[uint64]*cladminentity.ArticleInfo, len(articleModels)),
 	}
 	finished := make(chan bool, 1)
-
-	for _, article := range articles {
+	for _, articleModel := range articleModels {
 		wg.Add(1)
-		go func(article *model.Article) {
+		go func(articleModel *cladminmodel.SysArticle) {
 			defer wg.Done()
 			articleList.Lock.Lock()
 			defer articleList.Lock.Unlock()
-			articleList.IdMap[article.ID] = &model.ArticleInfo{
-				ID:          article.ID,
-				UserID:      article.UserID,
-				CateID:      article.CateID,
-				Title:       article.Title,
-				Thumb:       article.Thumb,
-				ReleaseTime: article.ReleaseTime,
+			articleList.IdMap[articleModel.ID] = &cladminentity.ArticleInfo{
+				ID:          articleModel.ID,
+				UserID:      articleModel.UserID,
+				CateID:      articleModel.CateID,
+				Title:       articleModel.Title,
+				Thumb:       articleModel.Thumb,
+				ReleaseTime: articleModel.ReleaseTime,
 			}
-		}(article)
+		}(articleModel)
 	}
 	go func() {
 		wg.Wait()
@@ -108,12 +108,30 @@ func (a *Article) GetList(ps util.PageSetting) ([]*model.ArticleInfo, uint64, *e
 	for _, id := range ids {
 		info = append(info, articleList.IdMap[id])
 	}
-	return info, count, nil
+	return info, uint64(count), nil
 }
 
-func (a *Article) Delete() *errno.Errno {
-	if err := model.DeleteArticle(a.ID); err != nil {
-		return errno.ErrDatabase
+func (a Article) List(listParams *service.ListParams) (result []*cladminmodel.SysArticle, count int64, err error) {
+	qc := cladminquery.Q.WithContext(a.ctx).SysArticle
+	if listParams.Options.CustomDBOrder != "" {
+		qc = cladminquery.Q.SysArticle.WithContext(a.ctx)
+		qc.ReplaceDB(qc.UnderlyingDB().Order(listParams.Options.CustomDBOrder))
 	}
-	return nil
+	base := qc.Select(listParams.Fields...).Where(listParams.Conditions...).Order(listParams.Orders...)
+	offset, limit := util.MysqlPagination(listParams.PS)
+	if !listParams.Options.WithoutCount {
+		result, count, err = base.FindByPage(offset, limit)
+	} else {
+		if limit == -1 {
+			result, err = base.Find()
+		} else {
+			result, err = base.Offset(offset).Limit(limit).Find()
+		}
+	}
+	return
+}
+
+func (a Article) Delete(conditions []gen.Condition) *errno.Errno {
+	_, err := cladminquery.Q.WithContext(a.ctx).SysArticle.Where(conditions...).Delete()
+	return gormx.HandleError(err)
 }

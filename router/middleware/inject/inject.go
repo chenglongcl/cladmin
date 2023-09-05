@@ -8,7 +8,8 @@ import (
 	"runtime"
 )
 
-// Object 注入对象
+// Object
+// @Description: 注入对象
 type Object struct {
 	Common   *bll.Common
 	Enforcer *casbin.Enforcer
@@ -16,7 +17,8 @@ type Object struct {
 
 var Obj *Object
 
-// Init 初始化依赖注入
+// Init
+// @Description: 初始化依赖注入
 func Init() {
 	defer func() {
 		if err := recover(); err != nil {
@@ -35,24 +37,25 @@ func Init() {
 	case "darwin":
 		path = "conf/rbac_model.conf"
 	}
-
 	//casbin new
 	enforcer := casbin.NewEnforcer(path, false)
 	_ = g.Provide(&inject.Object{Value: enforcer})
 	//common new
-	Common := new(bll.Common)
-	_ = g.Provide(&inject.Object{Value: Common})
+	common := new(bll.Common)
+	_ = g.Provide(&inject.Object{Value: common})
 	if err := g.Populate(); err != nil {
 		log.Error("初始化依赖注入发生错误：", err)
 	}
 	Obj = &Object{
-		Common:   Common,
+		Common:   common,
 		Enforcer: enforcer,
 	}
 	return
 }
 
-// 加载casbin策略数据，包括角色权限数据、用户角色数据
+// LoadCasbinPolicyData
+// @Description: 加载casbin策略数据，包括角色权限数据、用户角色数据
+// @return error
 func LoadCasbinPolicyData() error {
 	c := Obj.Common
 	err := c.RoleAPI.LoadAllPolicy()

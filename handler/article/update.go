@@ -1,35 +1,33 @@
 package article
 
 import (
-	. "cladmin/handler"
+	"cladmin/dal/cladmindb/cladminquery"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/service/articleservice"
-	"cladmin/util"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gen"
 )
 
 func Update(c *gin.Context) {
 	var r UpdateRequest
 	if err := c.Bind(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	if err := util.Validate(&r); err != nil {
-		SendResponse(c, errno.ErrValidation, nil)
+	articleService := articleservice.NewArticleService(c)
+	updateData := make(map[string]interface{})
+	updateData["title"] = r.Title
+	updateData["thumb"] = r.Thumb
+	updateData["content"] = r.Content
+	updateData["release_time"] = r.ReleaseTime
+	updateData["user_id"] = r.UserID
+	updateData["cate_id"] = r.CateID
+	if errNo := articleService.Edit([]gen.Condition{
+		cladminquery.Q.SysArticle.ID.Eq(r.ID),
+	}, updateData); errNo != nil {
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	articleService := articleservice.Article{
-		ID:          r.ID,
-		UserID:      r.UserID,
-		CateID:      r.CateID,
-		Title:       r.Title,
-		Thumb:       r.Thumb,
-		Content:     r.Content,
-		ReleaseTime: r.ReleaseTime,
-	}
-	if errNo := articleService.Edit(); errNo != nil {
-		SendResponse(c, errNo, nil)
-		return
-	}
-	SendResponse(c, nil, nil)
+	handler.SendResponse(c, nil, nil)
 }

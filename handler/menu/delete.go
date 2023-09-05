@@ -1,34 +1,43 @@
 package menu
 
 import (
-	. "cladmin/handler"
+	"cladmin/dal/cladmindb/cladminquery"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/router/middleware/inject"
 	"cladmin/service/menuservice"
-	"cladmin/util"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gen"
+	"gorm.io/gen/field"
 )
 
 func Delete(c *gin.Context) {
 	var r DeleteRequest
 	if err := c.BindQuery(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	if err := util.Validate(&r); err != nil {
-		SendResponse(c, errno.ErrValidation, nil)
-		return
-	}
-	menuService := menuservice.Menu{
-		ID: r.ID,
-	}
-	roleList, errNo := menuService.Delete()
+	menuService := menuservice.NewMenuService(c)
+	menuModel, errNo := menuService.Get([]field.Expr{
+		cladminquery.Q.SysMenu.ALL,
+	}, []gen.Condition{
+		cladminquery.Q.SysMenu.ID.Eq(r.ID),
+	})
 	if errNo != nil {
-		SendResponse(c, errNo, nil)
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	for _, v := range roleList {
-		inject.Obj.Common.RoleAPI.LoadPolicy(v)
+	if menuModel == nil || menuModel.ID == 0 {
+		handler.SendResponse(c, errno.ErrRecordNotFound, nil)
+		return
 	}
-	SendResponse(c, nil, nil)
+	errNo = menuService.Delete(menuModel)
+	if errNo != nil {
+		handler.SendResponse(c, errNo, nil)
+		return
+	}
+	for _, roleModel := range menuModel.Roles {
+		_ = inject.Obj.Common.RoleAPI.LoadPolicy(roleModel.ID)
+	}
+	handler.SendResponse(c, nil, nil)
 }

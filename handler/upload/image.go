@@ -1,9 +1,9 @@
 package upload
 
 import (
-	. "cladmin/handler"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
-	"cladmin/util"
+	"github.com/duke-git/lancet/v2/random"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"mime"
@@ -17,7 +17,7 @@ import (
 func Img(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
-		SendResponse(c, errno.ErrUploadFile, nil)
+		handler.SendResponse(c, errno.ErrUploadFile, nil)
 		return
 	}
 	// Get the file suffix name
@@ -25,7 +25,7 @@ func Img(c *gin.Context) {
 	//Validate file
 	mimeType := mime.TypeByExtension(fileSuffix)
 	if matched, err := regexp.MatchString("^image/[a-zA-Z]+$", mimeType); !matched || err != nil {
-		SendResponse(c, errno.ErrUploadMime, nil)
+		handler.SendResponse(c, errno.ErrUploadMime, nil)
 		return
 	}
 	// Rename filename and set savePath
@@ -34,18 +34,18 @@ func Img(c *gin.Context) {
 	date := time.Now().Format("20060102")
 	//Folder isNotExist
 	if _, err := os.Stat(savePath + date); err != nil && os.IsNotExist(err) {
-		os.MkdirAll(savePath+date, os.ModePerm)
+		_ = os.MkdirAll(savePath+date, os.ModePerm)
 	}
 	//Set saveFileName
-	saveFileName, _ := util.GenShortId()
+	saveFileName := random.RandNumeralOrLetter(16)
 	dst := savePath + date + "/" + saveFileName + fileSuffix
 	if err := c.SaveUploadedFile(file, dst); err != nil {
-		SendResponse(c, errno.ErrUploadFail, nil)
+		handler.SendResponse(c, errno.ErrUploadFail, nil)
 		return
 	}
 	rep := &UploadResponse{
 		Url:      dst,
 		FileName: saveFileName + fileSuffix,
 	}
-	SendResponse(c, nil, rep)
+	handler.SendResponse(c, nil, rep)
 }

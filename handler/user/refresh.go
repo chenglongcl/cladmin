@@ -1,7 +1,7 @@
 package user
 
 import (
-	. "cladmin/handler"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/pkg/token"
 	"github.com/gin-gonic/gin"
@@ -9,9 +9,9 @@ import (
 
 func Refresh(c *gin.Context) {
 	if ctx, err, t, e, r := token.ParseRefreshRequest(c); err != nil {
-		SendResponseForbidden(c, errno.ErrTokenInvalid, nil)
+		handler.SendResponseForbidden(c, errno.ErrTokenInvalid, nil)
 	} else {
-		SendResponse(c, nil, CreateResponse{
+		handler.SendResponse(c, nil, CreateResponse{
 			Username:         ctx.Username,
 			Token:            t,
 			ExpiredAt:        e,

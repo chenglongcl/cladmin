@@ -1,7 +1,7 @@
 package permission
 
 import (
-	. "cladmin/handler"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/router/middleware/inject"
 	"github.com/chenglongcl/log"
@@ -13,11 +13,11 @@ func CasbinMiddleware() gin.HandlerFunc {
 		username, _ := c.Get("username")
 		if b, err := inject.Obj.Enforcer.EnforceSafe(username, c.Request.URL.Path); err != nil {
 			log.Fatal("Casbin EnforceSafe Error", err)
-			SendResponseUnauthorized(c, errno.ErrCasbin, nil)
+			handler.SendResponseUnauthorized(c, errno.ErrCasbin, nil)
 			c.Abort()
 			return
 		} else if !b {
-			SendResponseForbidden(c, errno.ErrNotPermission, nil)
+			handler.SendResponseForbidden(c, errno.ErrNotPermission, nil)
 			c.Abort()
 			return
 		}

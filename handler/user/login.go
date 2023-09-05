@@ -1,129 +1,136 @@
 package user
 
 import (
-	. "cladmin/handler"
-	"cladmin/model"
+	"cladmin/dal/cladmindb/cladminquery"
+	"cladmin/handler"
 	"cladmin/pkg/auth"
 	"cladmin/pkg/errno"
 	"cladmin/pkg/token"
+	"cladmin/service/userservice"
 	"cladmin/service/usertokenservice"
-	"cladmin/util"
 	"github.com/gin-gonic/gin"
-	"sync"
+	"golang.org/x/sync/errgroup"
+	"gorm.io/gen"
+	"gorm.io/gen/field"
 	"time"
 )
 
-//用户登录
+// Login
+// @Description: 用户登录
+// @param c
 func Login(c *gin.Context) {
-	var u model.User
-	if err := c.Bind(&u); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+	var r LoginRequest
+	if err := c.Bind(&r); err != nil {
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	user, err := model.GetUserByUsername(u.Username)
-	if err != nil {
-		SendResponse(c, errno.ErrUserNotFound, nil)
+	userService := userservice.NewUserService(c)
+	userModel, errNo := userService.Get([]field.Expr{
+		cladminquery.Q.SysUser.ALL,
+	}, []gen.Condition{
+		cladminquery.Q.SysUser.Username.Eq(r.Username),
+	})
+	if errNo != nil {
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
 	//Compare the login password with user password
-	if err := auth.Compare(user.Password, u.Password); err != nil {
-		SendResponse(c, errno.ErrPasswordIncorrect, nil)
+	if err := auth.Compare(userModel.Password, r.Password); err != nil {
+		handler.SendResponse(c, errno.ErrPasswordIncorrect, nil)
 		return
 	}
 	//user locked
-	if user.Status != 1 {
-		SendResponse(c, errno.ErrDisabledUser, nil)
+	if userModel.Status != 1 {
+		handler.SendResponse(c, errno.ErrDisabledUser, nil)
 		return
 	}
 	// Sign the json web token.
-	t, e, re, _ := token.Sign(c, token.Context{ID: user.ID, Username: user.Username}, "")
+	t, e, re, err := token.Sign(c, token.Context{ID: userModel.ID, Username: userModel.Username}, "")
 	if err != nil {
-		SendResponse(c, errno.ErrToken, nil)
+		handler.SendResponse(c, errno.ErrToken, nil)
 		return
 	}
 	go func() {
 		expireTime, _ := time.ParseInLocation("2006-01-02 15:04:05", e, time.Local)
 		RefreshTime, _ := time.ParseInLocation("2006-01-02 15:04:05", re, time.Local)
-		userTokenService := &usertokenservice.UserToken{
-			UserID:      user.ID,
-			Token:       t,
-			ExpireTime:  expireTime,
-			RefreshTime: RefreshTime,
-		}
-		_ = userTokenService.RecordToken()
+		userTokenService := usertokenservice.NewUserTokenService(c)
+		userTokenService.UserID = userModel.ID
+		userTokenService.Token = t
+		userTokenService.ExpireTime = expireTime
+		userTokenService.RefreshTime = RefreshTime
+		_, _ = userTokenService.RecordToken()
 	}()
-	SendResponse(c, nil, CreateResponse{
-		Username:         user.Username,
+	handler.SendResponse(c, nil, CreateResponse{
+		Username:         userModel.Username,
 		Token:            t,
 		ExpiredAt:        e,
 		RefreshExpiredAt: re,
 	})
 }
 
-//用户登出
+// Logout
+// @Description: 用户登出
+// @param c
 func Logout(c *gin.Context) {
-	userID, _ := c.Get("userID")
-	userTokenService := &usertokenservice.UserToken{
-		UserID: userID.(uint64),
-	}
-	userToken, errNo := userTokenService.Get()
+	userID := c.GetUint64("userID")
+	userTokenService := usertokenservice.NewUserTokenService(c)
+	userTokenModel, errNo := userTokenService.Get([]field.Expr{
+		cladminquery.Q.SysUserToken.ALL,
+	}, []gen.Condition{
+		cladminquery.Q.SysUserToken.UserID.Eq(userID),
+	})
 	if errNo != nil {
-		SendResponse(c, errNo, nil)
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	if userToken.UserID == 0 {
-		SendResponse(c, errno.ErrRecordNotFound, nil)
+	if userTokenModel == nil || userTokenModel.UserID == 0 {
+		handler.SendResponse(c, errno.ErrRecordNotFound, nil)
 		return
 	}
 	go func() {
 		tokenCtx := &token.Context{
-			ID:         userID.(uint64),
-			ExpiredAt:  userToken.ExpireTime.Unix(),
-			RefreshExp: userToken.RefreshTime.Unix(),
+			ID:         userID,
+			ExpiredAt:  userTokenModel.ExpireTime.Unix(),
+			RefreshExp: userTokenModel.RefreshTime.Unix(),
 		}
-		token.BLackListToken(userToken.Token, tokenCtx)
+		token.BLackListToken(userTokenModel.Token, tokenCtx)
 	}()
-	SendResponse(c, nil, nil)
+	handler.SendResponse(c, nil, nil)
 }
 
-//注销管理员登录
+// LogoutLogin
+// @Description: 注销管理员登录
+// @param c
 func LogoutLogin(c *gin.Context) {
 	var r LogoutLoginRequest
 	if err := c.Bind(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	if err := util.Validate(&r); err != nil {
-		SendResponse(c, errno.ErrValidation, nil)
-		return
-	}
-	wg := sync.WaitGroup{}
-	finished := make(chan bool, 1)
-	for _, id := range r.Ids {
-		wg.Add(1)
-		go func(id uint64) {
-			defer wg.Done()
-			userTokenService := &usertokenservice.UserToken{
-				UserID: id,
-			}
-			userToken, _ := userTokenService.Get()
-			if userToken.UserID > 0 {
+	errGroup := &errgroup.Group{}
+	for _, _id := range r.Ids {
+		id := _id
+		errGroup.Go(func() error {
+			userTokenService := usertokenservice.NewUserTokenService(c)
+			userTokenModel, _ := userTokenService.Get([]field.Expr{
+				cladminquery.Q.SysUserToken.ALL,
+			}, []gen.Condition{
+				cladminquery.Q.SysUserToken.UserID.Eq(id),
+			})
+			if userTokenModel != nil && userTokenModel.UserID > 0 {
 				tokenCtx := &token.Context{
 					ID:         id,
-					ExpiredAt:  userToken.ExpireTime.Unix(),
-					RefreshExp: userToken.RefreshTime.Unix(),
+					ExpiredAt:  userTokenModel.ExpireTime.Unix(),
+					RefreshExp: userTokenModel.RefreshTime.Unix(),
 				}
-				token.BLackListToken(userToken.Token, tokenCtx)
+				token.BLackListToken(userTokenModel.Token, tokenCtx)
 			}
-		}(id)
+			return nil
+		})
 	}
-	go func() {
-		wg.Wait()
-		close(finished)
-	}()
-	select {
-	case <-finished:
-		SendResponse(c, nil, nil)
+	if errNo := errGroup.Wait(); errNo != nil {
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
+	handler.SendResponse(c, nil, nil)
 }

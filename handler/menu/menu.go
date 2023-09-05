@@ -3,7 +3,7 @@ package menu
 type CreateRequest struct {
 	ParentID uint64 `json:"parentId"`
 	Name     string `json:"name" binding:"required"`
-	Url      string `json:"url" binding:"omitempty"`
+	URL      string `json:"url" binding:"omitempty"`
 	Perms    string `json:"perms"`
 	Type     int64  `json:"type" binding:"oneof=0 1 2"`
 	Icon     string `json:"icon"`
@@ -32,9 +32,9 @@ type UpdateRequest struct {
 	ID       uint64 `json:"menuId" binding:"required"`
 	ParentID uint64 `json:"parentId"`
 	Name     string `json:"name" binding:"required"`
-	Url      string `json:"url" binding:"required"`
+	URL      string `json:"url" binding:"required_with=Type"`
 	Perms    string `json:"perms"`
-	Type     int64  `json:"type" binding:"required"`
+	Type     int64  `json:"type" binding:"oneof=0 1 2"`
 	Icon     string `json:"icon"`
 	OrderNum int64  `json:"orderNum"`
 }

@@ -1,33 +1,27 @@
 package article
 
 import (
-	. "cladmin/handler"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/service/articleservice"
-	"cladmin/util"
 	"github.com/gin-gonic/gin"
 )
 
 func Create(c *gin.Context) {
 	var r CreateRequest
 	if err := c.Bind(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	if err := util.Validate(&r); err != nil {
-		SendResponse(c, errno.ErrValidation, nil)
+	articleService := articleservice.NewArticleService(c)
+	articleService.UserID = r.UserID
+	articleService.CateID = r.CateID
+	articleService.Title = r.Title
+	articleService.Thumb = r.Thumb
+	articleService.Content = r.Content
+	if _, errNo := articleService.Add(); errNo != nil {
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	articleService := articleservice.Article{
-		UserID:  r.UserID,
-		CateID:  r.CateID,
-		Title:   r.Title,
-		Thumb:   r.Thumb,
-		Content: r.Content,
-	}
-	if errNo := articleService.Add(); errNo != nil {
-		SendResponse(c, errNo, nil)
-		return
-	}
-	SendResponse(c, nil, nil)
+	handler.SendResponse(c, nil, nil)
 }

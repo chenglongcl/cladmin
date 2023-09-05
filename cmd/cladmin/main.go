@@ -2,7 +2,7 @@ package main
 
 import (
 	"cladmin/config"
-	"cladmin/model"
+	"cladmin/pkg/gormx"
 	"cladmin/pkg/json"
 	"cladmin/pkg/oss"
 	"cladmin/pkg/redisgo"
@@ -55,9 +55,9 @@ func program(state overseer.State) {
 	if err := config.Init(*cfg); err != nil {
 		panic(err)
 	}
-	// init db
-	model.Init()
-	defer model.Close()
+	//init gorm v2
+	gormx.InitMySQL()
+	defer gormx.Close()
 	// init redis
 	_ = redisgo.Init()
 	json.Init()

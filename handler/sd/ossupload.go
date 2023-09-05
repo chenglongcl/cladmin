@@ -1,17 +1,17 @@
 package sd
 
 import (
-	"github.com/gin-gonic/gin"
-	"time"
-	"github.com/spf13/viper"
-	"github.com/json-iterator/go"
-	"encoding/base64"
-	"crypto/hmac"
-	"hash"
-	"crypto/sha1"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
-	. "cladmin/handler"
+	"crypto/hmac"
+	"crypto/sha1"
+	"encoding/base64"
+	"github.com/gin-gonic/gin"
+	"github.com/json-iterator/go"
+	"github.com/spf13/viper"
+	"hash"
 	"net/http"
+	"time"
 )
 
 type PolicyConfig struct {
@@ -51,7 +51,7 @@ func GenerateSignature(c *gin.Context) {
 	//calucate signature
 	result, err := jsoniter.Marshal(pc)
 	if err != nil {
-		SendResponse(c, errno.ErrOssGenerateSignatureFail, nil)
+		handler.SendResponse(c, errno.ErrOssGenerateSignatureFail, nil)
 		return
 	}
 	deByte := base64.StdEncoding.EncodeToString(result)

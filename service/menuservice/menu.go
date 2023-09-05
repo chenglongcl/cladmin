@@ -1,88 +1,118 @@
 package menuservice
 
 import (
-	"cladmin/model"
+	"cladmin/dal/cladmindb/cladminentity"
+	"cladmin/dal/cladmindb/cladminmodel"
+	"cladmin/dal/cladmindb/cladminquery"
 	"cladmin/pkg/errno"
+	"cladmin/pkg/gormx"
+	"cladmin/service"
+	"cladmin/util"
 	"github.com/casbin/casbin"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gen"
+	"gorm.io/gen/field"
+	"gorm.io/gorm/schema"
 	"strings"
 	"sync"
 )
 
-type Menu struct {
-	ID       uint64
-	ParentID uint64
-	Name     string
-	Url      string
-	Perms    string
-	Type     int64
-	Icon     string
-	OrderNum int64
-
-	Enforcer *casbin.Enforcer `inject:""`
+type menu struct {
+	ID             uint64
+	ParentID       uint64
+	Name           string
+	URL            string
+	Perms          string
+	Type           int64
+	Icon           string
+	OrderNum       int64
+	Enforcer       *casbin.Enforcer `inject:""`
+	serviceOptions *service.Options
+	ctx            *gin.Context
 }
 
-func (a *Menu) Add() *errno.Errno {
-	data := map[string]interface{}{
-		"parent_id": a.ParentID,
-		"name":      a.Name,
-		"url":       a.Url,
-		"perms":     a.Perms,
-		"type":      a.Type,
-		"icon":      a.Icon,
-		"order_num": a.OrderNum,
+type Menu = *menu
+
+func NewMenuService(ctx *gin.Context, opts ...service.Option) Menu {
+	opt := new(service.Options)
+	for _, f := range opts {
+		f(opt)
 	}
-	if err := model.AddMenu(data); err != nil {
-		return errno.ErrDatabase
+	return &menu{
+		serviceOptions: opt,
+		ctx:            ctx,
+	}
+}
+
+func (a Menu) Add() (*cladminmodel.SysMenu, *errno.Errno) {
+	menuModel := &cladminmodel.SysMenu{
+		ParentID: a.ParentID,
+		Name:     a.Name,
+		URL:      a.URL,
+		Perms:    a.Perms,
+		Type:     a.Type,
+		Icon:     a.Icon,
+		OrderNum: a.OrderNum,
+	}
+	err := cladminquery.Q.WithContext(a.ctx).SysMenu.Create(menuModel)
+	if errNo := gormx.HandleError(err); errNo != nil {
+		return nil, errNo
+	}
+	return menuModel, nil
+}
+
+func (a Menu) Edit(menuModel *cladminmodel.SysMenu) *errno.Errno {
+	err := cladminquery.Q.WithContext(a.ctx).SysMenu.Omit(field.AssociationFields).Save(menuModel)
+	if errNo := gormx.HandleError(err); errNo != nil {
+		return errNo
 	}
 	return nil
 }
 
-func (a *Menu) Get() (*model.Menu, *errno.Errno) {
-	menu, err := model.GetMenu(a.ID)
-	if err != nil {
-		return menu, errno.ErrDatabase
-	}
-	return menu, nil
+func (a Menu) Get(fields []field.Expr, conditions []gen.Condition) (*cladminmodel.SysMenu, *errno.Errno) {
+	menuModel, err := cladminquery.Q.WithContext(a.ctx).SysMenu.
+		Preload(cladminquery.Q.SysMenu.Roles).
+		Select(fields...).Where(conditions...).Take()
+	return menuModel, gormx.HandleError(err)
 }
 
-func (a *Menu) GetList(w map[string]interface{}) ([]*model.MenuInfo, *errno.Errno) {
-	menus, err := model.GetMenuList(w)
-	if err != nil {
-		return nil, errno.ErrDatabase
+func (a Menu) InfoList(listParams *service.ListParams) ([]*cladminentity.MenuInfo, uint64, *errno.Errno) {
+	menuModels, count, err := a.List(listParams)
+	if errNo := gormx.HandleError(err); errNo != nil {
+		return nil, uint64(count), errNo
 	}
 	var ids []uint64
-	for _, menu := range menus {
-		ids = append(ids, menu.ID)
+	for _, menuModel := range menuModels {
+		ids = append(ids, menuModel.ID)
 	}
-
-	info := make([]*model.MenuInfo, 0)
+	info := make([]*cladminentity.MenuInfo, 0)
 	wg := sync.WaitGroup{}
 	finished := make(chan bool, 1)
-	menuList := model.MenuList{
+	menuList := cladminentity.MenuList{
 		Lock:  new(sync.Mutex),
-		IdMap: make(map[uint64]*model.MenuInfo, len(menus)),
+		IdMap: make(map[uint64]*cladminentity.MenuInfo, len(menuModels)),
 	}
-	for _, menu := range menus {
+	for _, menuModel := range menuModels {
 		wg.Add(1)
-		go func(menu *model.Menu) {
+		go func(menuModel *cladminmodel.SysMenu) {
 			defer wg.Done()
 			menuList.Lock.Lock()
 			defer menuList.Lock.Unlock()
-			menuList.IdMap[menu.ID] = &model.MenuInfo{
-				ID:         menu.ID,
-				ParentID:   menu.ParentID,
+			menuList.IdMap[menuModel.ID] = &cladminentity.MenuInfo{
+				ID:         menuModel.ID,
+				ParentID:   menuModel.ParentID,
 				ParentName: "",
-				Name:       menu.Name,
-				Url:        menu.Url,
-				Perms:      menu.Perms,
-				Type:       menu.Type,
-				Icon:       menu.Icon,
+				Name:       menuModel.Name,
+				Url:        menuModel.URL,
+				Perms:      menuModel.Perms,
+				Type:       menuModel.Type,
+				Icon:       menuModel.Icon,
 				Open:       0,
-				OrderNum:   menu.OrderNum,
-				CreateTime: menu.CreatedAt.Format("2006-01-02 15:04:05"),
-				UpdateTime: menu.UpdatedAt.Format("2006-01-02 15:04:05"),
+				OrderNum:   menuModel.OrderNum,
+				CreateTime: menuModel.CreatedAt.Format("2006-01-02 15:04:05"),
+				UpdateTime: menuModel.UpdatedAt.Format("2006-01-02 15:04:05"),
 			}
-		}(menu)
+		}(menuModel)
 	}
 	go func() {
 		wg.Wait()
@@ -95,83 +125,151 @@ func (a *Menu) GetList(w map[string]interface{}) ([]*model.MenuInfo, *errno.Errn
 	for _, id := range ids {
 		info = append(info, menuList.IdMap[id])
 	}
-	return info, nil
+	return info, uint64(count), nil
 }
 
-func (a *Menu) Edit() ([]uint64, *errno.Errno) {
-	if menuExists, _ := model.CheckMenuByID(a.ID); !menuExists {
-		return nil, errno.ErrRecordNotFound
+func (a Menu) List(listParams *service.ListParams) (result []*cladminmodel.SysMenu, count int64, err error) {
+	qc := cladminquery.Q.WithContext(a.ctx).SysMenu
+	if listParams.Options.CustomDBOrder != "" {
+		qc = cladminquery.Q.SysMenu.WithContext(a.ctx)
+		qc.ReplaceDB(qc.UnderlyingDB().Order(listParams.Options.CustomDBOrder))
 	}
-	data := map[string]interface{}{
-		"id":        a.ID,
-		"parent_id": a.ParentID,
-		"name":      a.Name,
-		"url":       a.Url,
-		"perms":     a.Perms,
-		"type":      a.Type,
-		"icon":      a.Icon,
-		"order_num": a.OrderNum,
+	base := qc.Select(listParams.Fields...).Where(listParams.Conditions...).Order(listParams.Orders...)
+	for _, join := range listParams.Joins {
+		base = base.Join(join.Table, join.On...)
 	}
-	if err := model.EditMenu(data); err != nil {
-		return nil, errno.ErrDatabase
+	if len(listParams.Groups) > 0 {
+		base = base.Group(listParams.Groups...)
 	}
-	roleList := model.EditMenuGetRoles(a.ID)
-	return roleList, nil
-}
-
-func (a *Menu) Delete() ([]uint64, *errno.Errno) {
-	roleList := model.EditMenuGetRoles(a.ID)
-	children, err := model.GetMenuList(map[string]interface{}{
-		"parent_id": a.ID,
-	})
-	if err != nil {
-		return nil, errno.ErrDatabase
-	}
-	if len(children) > 0 {
-		return nil, errno.ErrRecordHasChildren
-	}
-	if err := model.DeleteMenu(a.ID); err != nil {
-		return nil, errno.ErrDatabase
-	}
-	return roleList, nil
-}
-
-func (a *Menu) GetMenuNavByUserID(userID uint64) ([]*MenuTree, []string, *errno.Errno) {
-	var (
-		menus   []*model.Menu
-		modeErr error
-	)
-	if userID == 1 {
-		//admin
-		w := map[string]interface{}{}
-		menus, modeErr = model.GetMenuList(w)
+	offset, limit := util.MysqlPagination(listParams.PS)
+	if !listParams.Options.WithoutCount {
+		result, count, err = base.FindByPage(offset, limit)
 	} else {
-		menus, modeErr = model.GetMenuNavByUserId(userID)
+		if limit == -1 {
+			result, err = base.Find()
+		} else {
+			result, err = base.Offset(offset).Limit(limit).Find()
+		}
 	}
-	if modeErr != nil {
-		return nil, nil, errno.ErrDatabase
+	return
+}
+
+func (a Menu) Delete(menuModel *cladminmodel.SysMenu) *errno.Errno {
+	submenuModel, errNo := a.Get([]field.Expr{
+		cladminquery.Q.SysMenu.ID,
+	}, []gen.Condition{
+		cladminquery.Q.SysMenu.ParentID.Eq(menuModel.ID),
+	})
+	if errNo != nil {
+		return errNo
+	}
+	if submenuModel != nil && submenuModel.ID > 0 {
+		return errno.ErrRecordHasChildren
+	}
+	_, err := cladminquery.Q.WithContext(a.ctx).SysMenu.Unscoped().Select(field.AssociationFields).Delete(menuModel)
+	if err != nil {
+		return gormx.HandleError(err)
+	}
+	return nil
+}
+
+func (a Menu) GetMenuNavByUserID(userID uint64) ([]*MenuTree, []string, *errno.Errno) {
+	var (
+		menuModels []*cladminmodel.SysMenu
+		err        error
+		errNo      *errno.Errno
+	)
+	menuModels, _, err = a.List(&service.ListParams{
+		PS: util.PageSetting{},
+		Options: struct {
+			WithoutCount  bool
+			Scenes        string
+			CustomDBOrder string
+			CustomFunc    func() interface{}
+		}{WithoutCount: true},
+		Fields: []field.Expr{
+			cladminquery.Q.SysMenu.ALL,
+		},
+		Conditions: append(func() []gen.Condition {
+			conditions := make([]gen.Condition, 0)
+			if userID != 1 {
+				conditions = append(conditions, cladminquery.Q.SysUserRole.UserID.Eq(userID))
+			}
+			return conditions
+		}(), []gen.Condition{}...),
+		Joins: func() []struct {
+			Table schema.Tabler
+			On    []field.Expr
+		} {
+			joins := make([]struct {
+				Table schema.Tabler
+				On    []field.Expr
+			}, 0)
+			if userID != 1 {
+				joins = append(joins, []struct {
+					Table schema.Tabler
+					On    []field.Expr
+				}{
+					{
+						Table: cladminquery.Q.SysRoleMenu,
+						On: []field.Expr{
+							cladminquery.Q.SysRoleMenu.MenuID.EqCol(cladminquery.Q.SysMenu.ID),
+						},
+					},
+					{
+						Table: cladminquery.Q.SysRole,
+						On: []field.Expr{
+							cladminquery.Q.SysRole.ID.EqCol(cladminquery.Q.SysRoleMenu.RoleID),
+						},
+					},
+					{
+						Table: cladminquery.Q.SysUserRole,
+						On: []field.Expr{
+							cladminquery.Q.SysUserRole.RoleID.EqCol(cladminquery.Q.SysRole.ID),
+						},
+					},
+				}...)
+			}
+			return joins
+		}(),
+		Groups: func() []field.Expr {
+			if userID != 1 {
+				return []field.Expr{
+					cladminquery.Q.SysMenu.ID,
+				}
+			}
+			return nil
+		}(),
+		Orders: []field.Expr{
+			cladminquery.Q.SysMenu.ParentID,
+			cladminquery.Q.SysMenu.OrderNum,
+			cladminquery.Q.SysMenu.ID,
+		},
+	})
+	if errNo = gormx.HandleError(err); errNo != nil {
+		return nil, nil, errNo
 	}
 	var (
 		menuTrees MenuTrees
 	)
 	permissions := make([]string, 0)
-	for _, menu := range menus {
-		if menu.Type != 2 {
+	for _, menuModel := range menuModels {
+		if menuModel.Type != 2 {
 			menuTrees = append(menuTrees, &MenuTree{
-				MenuID:     menu.ID,
-				Name:       menu.Name,
+				MenuID:     menuModel.ID,
+				Name:       menuModel.Name,
 				Open:       0,
-				OrderNum:   menu.OrderNum,
-				Icon:       menu.Icon,
-				Url:        menu.Url,
-				ParentID:   menu.ParentID,
+				OrderNum:   menuModel.OrderNum,
+				Icon:       menuModel.Icon,
+				Url:        menuModel.URL,
+				ParentID:   menuModel.ParentID,
 				ParentName: "",
-				Perms:      menu.Perms,
-				Type:       menu.Type,
+				Perms:      menuModel.Perms,
+				Type:       menuModel.Type,
 			})
 		}
-		if menu.Perms != "" {
-			pSlice := strings.Split(menu.Perms, ",")
+		if menuModel.Perms != "" {
+			pSlice := strings.Split(menuModel.Perms, ",")
 			permissions = append(permissions, pSlice...)
 		}
 	}
@@ -211,21 +309,20 @@ func (a MenuTrees) ToTree() []*MenuTree {
 	for _, item := range a {
 		mi[item.MenuID] = item
 	}
-
 	var list []*MenuTree
 	for _, item := range a {
 		if item.ParentID == 0 {
 			list = append(list, item)
 			continue
 		}
-		if pitem, ok := mi[item.ParentID]; ok {
-			if pitem.List == nil {
+		if pItem, ok := mi[item.ParentID]; ok {
+			if pItem.List == nil {
 				var children []*MenuTree
 				children = append(children, item)
-				pitem.List = &children
+				pItem.List = &children
 				continue
 			}
-			*pitem.List = append(*pitem.List, item)
+			*pItem.List = append(*pItem.List, item)
 		}
 	}
 	return list

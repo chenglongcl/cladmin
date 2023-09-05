@@ -1,11 +1,15 @@
 package role
 
 import (
-	. "cladmin/handler"
+	"cladmin/dal/cladmindb/cladminquery"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
+	"cladmin/service"
 	"cladmin/service/roleservice"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gen"
+	"gorm.io/gen/field"
 )
 
 func List(c *gin.Context) {
@@ -14,27 +18,55 @@ func List(c *gin.Context) {
 		ps util.PageSetting
 	)
 	if err := c.BindQuery(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
 	ps.Setting(r.Page, r.Limit)
-	roleService := roleservice.Role{
-		RoleName: r.RoleName,
-	}
-	roles, count, errNo := roleService.GetList(ps)
+	roleService := roleservice.NewRoleService(c)
+	roleInfos, count, errNo := roleService.InfoList(&service.ListParams{
+		PS: ps,
+		Fields: []field.Expr{
+			cladminquery.Q.SysRole.ALL,
+		},
+		Conditions: append(func() []gen.Condition {
+			conditions := make([]gen.Condition, 0)
+			if r.RoleName != "" {
+				conditions = append(conditions, cladminquery.Q.SysRole.RoleName.Like(util.StringBuilder("%", r.RoleName, "%")))
+			}
+			return conditions
+		}(), []gen.Condition{}...),
+		Orders: []field.Expr{
+			cladminquery.Q.SysRole.ID,
+		},
+	})
 	if errNo != nil {
-		SendResponse(c, errNo, nil)
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	SendResponse(c, nil, util.PageUtil(count, ps.Page, ps.Limit, roles))
+	handler.SendResponse(c, nil, util.PageUtil(count, ps.Page, ps.Limit, roleInfos))
 }
 
 func Select(c *gin.Context) {
-	roleService := roleservice.Role{}
-	roles, errNo := roleService.GetAll()
+	roleService := roleservice.NewRoleService(c)
+	roleInfos, _, errNo := roleService.InfoList(&service.ListParams{
+		PS: util.PageSetting{},
+		Options: struct {
+			WithoutCount  bool
+			Scenes        string
+			CustomDBOrder string
+			CustomFunc    func() interface{}
+		}{WithoutCount: true},
+		Fields: []field.Expr{
+			cladminquery.Q.SysRole.ALL,
+		},
+		Conditions: nil,
+		Orders: []field.Expr{
+			cladminquery.Q.SysRole.ID,
+		},
+	})
 	if errNo != nil {
-		SendResponse(c, errNo, nil)
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	SendResponse(c, nil, roles)
+	handler.SendResponse(c, nil, roleInfos)
 }

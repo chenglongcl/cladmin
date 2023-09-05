@@ -1,0 +1,19 @@
+log:
+  writers: file,stdout
+  logger_level: DEBUG
+  logger_file: log/gormgenerate.log
+  log_format_text: false
+  rollingPolicy: size
+  log_rotate_date: 1
+  log_rotate_size: 10240
+  log_backup_count: 7
+db:
+  name: cl_admin
+  addr: 127.0.0.1:3306
+  username: root
+  password: root
+docker_db:
+  name: cl_admin
+  addr: 127.0.0.1:3306
+  username: root
+  password: root

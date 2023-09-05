@@ -1,32 +1,71 @@
 package menu
 
 import (
-	. "cladmin/handler"
+	"cladmin/dal/cladmindb/cladminquery"
+	"cladmin/handler"
+	"cladmin/service"
 	"cladmin/service/menuservice"
+	"cladmin/util"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gen"
+	"gorm.io/gen/field"
 )
 
 func List(c *gin.Context) {
-	menuService := menuservice.Menu{}
-	w := map[string]interface{}{}
-	info, errNo := menuService.GetList(w)
+	menuService := menuservice.NewMenuService(c)
+	info, _, errNo := menuService.InfoList(&service.ListParams{
+		PS: util.PageSetting{},
+		Options: struct {
+			WithoutCount  bool
+			Scenes        string
+			CustomDBOrder string
+			CustomFunc    func() interface{}
+		}{WithoutCount: true},
+		Fields: []field.Expr{
+			cladminquery.Q.SysMenu.ALL,
+		},
+		Conditions: []gen.Condition{},
+		Orders: []field.Expr{
+			cladminquery.Q.SysMenu.ParentID,
+			cladminquery.Q.SysMenu.OrderNum,
+		},
+	})
 	if errNo != nil {
-		SendResponse(c, errNo, nil)
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	SendResponse(c, nil, info)
+	handler.SendResponse(c, nil, info)
 }
 
-//上级菜单type 为1,2类型
+// Select
+// @Description: 上级菜单type 为0,1类型
+// @param c
 func Select(c *gin.Context) {
-	menuService := menuservice.Menu{}
-	w := map[string]interface{}{
-		"type !=": 2,
-	}
-	info, errNo := menuService.GetList(w)
+	menuService := menuservice.NewMenuService(c)
+	info, _, errNo := menuService.InfoList(&service.ListParams{
+		PS: util.PageSetting{},
+		Options: struct {
+			WithoutCount  bool
+			Scenes        string
+			CustomDBOrder string
+			CustomFunc    func() interface{}
+		}{
+			WithoutCount: true,
+		},
+		Fields: []field.Expr{
+			cladminquery.Q.SysMenu.ALL,
+		},
+		Conditions: []gen.Condition{
+			cladminquery.Q.SysMenu.Type.Neq(2),
+		},
+		Orders: []field.Expr{
+			cladminquery.Q.SysMenu.ParentID,
+			cladminquery.Q.SysMenu.OrderNum,
+		},
+	})
 	if errNo != nil {
-		SendResponse(c, errNo, nil)
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	SendResponse(c, nil, info)
+	handler.SendResponse(c, nil, info)
 }

@@ -1,30 +1,32 @@
 package oss
 
 import (
-	. "cladmin/handler"
+	"cladmin/dal/cladmindb/cladminquery"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/pkg/oss"
-	"cladmin/service/ossservice"
-	"cladmin/util"
+	"cladmin/service/configservice"
 	"github.com/gin-gonic/gin"
+	"github.com/json-iterator/go"
+	"gorm.io/gen"
 )
 
-func SaveConfing(c *gin.Context) {
+func SaveConfig(c *gin.Context) {
 	var r SaveConfigRequest
 	if err := c.Bind(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	ossService := ossservice.OssConfig{}
-	util.StructCopy(&ossService, &r)
-	if errNo := ossService.SaveConfig(); errNo != nil {
-		SendResponse(c, errNo, nil)
+	paramValue, _ := jsoniter.MarshalToString(r)
+	configService := configservice.NewConfigService(c)
+	if errNo := configService.Edit([]gen.Condition{
+		cladminquery.Q.SysConfig.ID.Eq(1),
+	}, map[string]interface{}{
+		"param_value": paramValue,
+	}); errNo != nil {
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	if ossService.AliYunEndPoint != "" &&
-		ossService.AliYunAccessKeyID != "" &&
-		ossService.AliYunAccessKeySecret != "" {
-		oss.SelectClient("ali").ResetClient()
-	}
-	SendResponse(c, nil, nil)
+	_ = oss.SelectClient("ali").ResetClient()
+	handler.SendResponse(c, nil, nil)
 }

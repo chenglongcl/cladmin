@@ -1,35 +1,29 @@
 package menu
 
 import (
-	. "cladmin/handler"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/service/menuservice"
-	"cladmin/util"
 	"github.com/gin-gonic/gin"
 )
 
 func Create(c *gin.Context) {
 	var r CreateRequest
 	if err := c.Bind(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	if err := util.Validate(&r); err != nil {
-		SendResponse(c, errno.ErrValidation, nil)
+	menuService := menuservice.NewMenuService(c)
+	menuService.ParentID = r.ParentID
+	menuService.Name = r.Name
+	menuService.URL = r.URL
+	menuService.Perms = r.Perms
+	menuService.Type = r.Type
+	menuService.Icon = r.Icon
+	menuService.OrderNum = r.OrderNum
+	if _, errNo := menuService.Add(); errNo != nil {
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	menuService := menuservice.Menu{
-		ParentID: r.ParentID,
-		Name:     r.Name,
-		Url:      r.Url,
-		Perms:    r.Perms,
-		Type:     r.Type,
-		Icon:     r.Icon,
-		OrderNum: r.OrderNum,
-	}
-	if errNo := menuService.Add(); errNo != nil {
-		SendResponse(c, errNo, nil)
-		return
-	}
-	SendResponse(c, nil, nil)
+	handler.SendResponse(c, nil, nil)
 }

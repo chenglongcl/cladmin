@@ -31,3 +31,6 @@
 !/cmd/cladmin/public/update/README.MD
 /cmd/cladmin/cladmin
 
+/cmd/gormgenerate/conf/config.yaml
+/cmd/gormgenerate/log/*.log
+

@@ -65,7 +65,7 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 		apiV1.GET("/config/get", config.Get)
 		apiV1.PUT("/config/update", config.Update)
 
-		apiV1.PUT("/oss/saveConfig", oss.SaveConfing)
+		apiV1.PUT("/oss/saveConfig", oss.SaveConfig)
 		apiV1.POST("/oss/upload", oss.Upload)
 		apiV1.POST("/upload", upload.Upload)
 

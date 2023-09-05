@@ -1,36 +1,46 @@
 package menu
 
 import (
-	. "cladmin/handler"
+	"cladmin/dal/cladmindb/cladminquery"
+	"cladmin/handler"
 	"cladmin/pkg/errno"
 	"cladmin/router/middleware/inject"
 	"cladmin/service/menuservice"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gen"
+	"gorm.io/gen/field"
 )
 
 func Update(c *gin.Context) {
 	var r UpdateRequest
 	if err := c.Bind(&r); err != nil {
-		SendResponse(c, errno.ErrBind, nil)
+		handler.SendResponse(c, errno.ErrBind, nil)
 		return
 	}
-	menuService := menuservice.Menu{
-		ID:       r.ID,
-		ParentID: r.ParentID,
-		Name:     r.Name,
-		Url:      r.Url,
-		Perms:    r.Perms,
-		Type:     r.Type,
-		Icon:     r.Icon,
-		OrderNum: r.OrderNum,
-	}
-	roleList, errNo := menuService.Edit()
+	menuService := menuservice.NewMenuService(c)
+	menuModel, errNo := menuService.Get([]field.Expr{
+		cladminquery.Q.SysMenu.ALL,
+	}, []gen.Condition{
+		cladminquery.Q.SysMenu.ID.Eq(r.ID),
+	})
 	if errNo != nil {
-		SendResponse(c, errNo, nil)
+		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	for _, v := range roleList {
-		inject.Obj.Common.RoleAPI.LoadPolicy(v)
+	menuModel.ParentID = r.ParentID
+	menuModel.Name = r.Name
+	menuModel.URL = r.URL
+	menuModel.Perms = r.Perms
+	menuModel.Type = r.Type
+	menuModel.Icon = r.Icon
+	menuModel.OrderNum = r.OrderNum
+	errNo = menuService.Edit(menuModel)
+	if errNo != nil {
+		handler.SendResponse(c, errNo, nil)
+		return
 	}
-	SendResponse(c, nil, nil)
+	for _, roleModel := range menuModel.Roles {
+		_ = inject.Obj.Common.RoleAPI.LoadPolicy(roleModel.ID)
+	}
+	handler.SendResponse(c, nil, nil)
 }

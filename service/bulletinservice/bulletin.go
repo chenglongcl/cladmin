@@ -1,90 +1,92 @@
 package bulletinservice
 
 import (
-	"cladmin/model"
+	"cladmin/dal/cladmindb/cladminentity"
+	"cladmin/dal/cladmindb/cladminmodel"
+	"cladmin/dal/cladmindb/cladminquery"
 	"cladmin/pkg/errno"
+	"cladmin/pkg/gormx"
+	"cladmin/service"
 	"cladmin/util"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gen"
+	"gorm.io/gen/field"
 	"sync"
 )
 
-type Bulletin struct {
-	ID      uint64
-	Title   string
-	Tag     string
-	Content string
+type bulletin struct {
+	ID             uint64
+	Title          string
+	Tag            string
+	Content        string
+	serviceOptions *service.Options
+	ctx            *gin.Context
 }
 
-func (a *Bulletin) Add() *errno.Errno {
-	data := map[string]interface{}{
-		"title":   a.Title,
-		"tag":     a.Tag,
-		"content": a.Content,
+type Bulletin = *bulletin
+
+func NewBulletinService(ctx *gin.Context, opts ...service.Option) Bulletin {
+	opt := new(service.Options)
+	for _, f := range opts {
+		f(opt)
 	}
-	if err := model.AddBulletin(data); err != nil {
-		return errno.ErrDatabase
+	return &bulletin{
+		serviceOptions: opt,
+		ctx:            ctx,
 	}
-	return nil
 }
 
-func (a *Bulletin) Edit() *errno.Errno {
-	data := map[string]interface{}{
-		"id":      a.ID,
-		"title":   a.Title,
-		"tag":     a.Tag,
-		"content": a.Content,
+func (a Bulletin) Add() (*cladminmodel.SysBulletin, *errno.Errno) {
+	bulletinModel := &cladminmodel.SysBulletin{ID: 0,
+		Title:   a.Title,
+		Tag:     a.Tag,
+		Content: a.Content,
 	}
-	if err := model.EditBulletin(data); err != nil {
-		return errno.ErrDatabase
-	}
-	return nil
+	err := cladminquery.Q.WithContext(a.ctx).SysBulletin.Create(bulletinModel)
+	return bulletinModel, gormx.HandleError(err)
 }
 
-func (a *Bulletin) Get() (*model.Bulletin, *errno.Errno) {
-	publicNotice, err := model.GetBulletin(a.ID)
-	if err != nil {
-		return nil, errno.ErrDatabase
-	}
-	return publicNotice, nil
+func (a Bulletin) Edit(conditions []gen.Condition, data map[string]interface{}) *errno.Errno {
+	_, err := cladminquery.Q.WithContext(a.ctx).SysBulletin.Where(conditions...).Updates(data)
+	return gormx.HandleError(err)
 }
 
-func (a *Bulletin) GetList(ps util.PageSetting) ([]*model.BulletinInfo, uint64, *errno.Errno) {
-	w := make(map[string]interface{})
-	if a.Title != "" {
-		w["title like"] = "%" + a.Title + "%"
-	}
-	if a.Tag != "" {
-		w["tag"] = a.Tag
-	}
-	publicNotices, count, err := model.GetBulletinList(w, ps.Offset, ps.Limit)
-	if err != nil {
-		return nil, count, errno.ErrDatabase
+func (a Bulletin) Get(fields []field.Expr, conditions []gen.Condition) (*cladminmodel.SysBulletin, *errno.Errno) {
+	bulletinModel, err := cladminquery.Q.WithContext(a.ctx).SysBulletin.Select(fields...).Where(conditions...).Take()
+	return bulletinModel, gormx.HandleError(err)
+}
+
+func (a Bulletin) InfoList(listParams *service.ListParams) ([]*cladminentity.BulletinInfo, uint64, *errno.Errno) {
+	bulletinModels, count, err := a.List(listParams)
+	if errNo := gormx.HandleError(err); errNo != nil {
+		return nil, uint64(count), errNo
 	}
 	var ids []uint64
-	for _, publicNotice := range publicNotices {
-		ids = append(ids, publicNotice.ID)
+	for _, bulletinModel := range bulletinModels {
+		ids = append(ids, bulletinModel.ID)
 	}
+	info := make([]*cladminentity.BulletinInfo, 0)
 	wg := sync.WaitGroup{}
-	publicNoticesList := model.BulletinList{
+	bulletinList := cladminentity.BulletinList{
 		Lock:  new(sync.Mutex),
-		IdMap: make(map[uint64]*model.BulletinInfo, len(publicNotices)),
+		IdMap: make(map[uint64]*cladminentity.BulletinInfo, len(bulletinModels)),
 	}
 	finished := make(chan bool, 1)
-	for _, publicNotice := range publicNotices {
+	for _, bulletinModel := range bulletinModels {
 		wg.Add(1)
-		go func(publicNotice *model.Bulletin) {
+		go func(bulletinModel *cladminmodel.SysBulletin) {
 			defer wg.Done()
-			publicNoticesList.Lock.Lock()
-			defer publicNoticesList.Lock.Unlock()
-			publicNoticesList.IdMap[publicNotice.ID] = &model.BulletinInfo{
-				ID:         publicNotice.ID,
-				Title:      publicNotice.Title,
-				Tag:        publicNotice.Tag,
-				Content:    publicNotice.Content,
-				CreateTime: publicNotice.CreatedAt.Format("2006-01-02 15:04:05"),
+			bulletinList.Lock.Lock()
+			defer bulletinList.Lock.Unlock()
+			bulletinList.IdMap[bulletinModel.ID] = &cladminentity.BulletinInfo{
+				ID:         bulletinModel.ID,
+				Title:      bulletinModel.Title,
+				Tag:        bulletinModel.Tag,
+				Content:    bulletinModel.Content,
+				CreateTime: bulletinModel.CreatedAt.Format("2006-01-02 15:04:05"),
 			}
-		}(publicNotice)
+		}(bulletinModel)
 	}
-
 	go func() {
 		wg.Wait()
 		close(finished)
@@ -92,16 +94,33 @@ func (a *Bulletin) GetList(ps util.PageSetting) ([]*model.BulletinInfo, uint64, 
 	select {
 	case <-finished:
 	}
-	info := make([]*model.BulletinInfo, 0)
 	for _, id := range ids {
-		info = append(info, publicNoticesList.IdMap[id])
+		info = append(info, bulletinList.IdMap[id])
 	}
-	return info, count, nil
+	return info, uint64(count), nil
 }
 
-func (a *Bulletin) Delete() *errno.Errno {
-	if err := model.DeleteBulletin(a.ID); err != nil {
-		return errno.ErrDatabase
+func (a Bulletin) List(listParams *service.ListParams) (result []*cladminmodel.SysBulletin, count int64, err error) {
+	qc := cladminquery.Q.WithContext(a.ctx).SysBulletin
+	if listParams.Options.CustomDBOrder != "" {
+		qc = cladminquery.Q.SysBulletin.WithContext(a.ctx)
+		qc.ReplaceDB(qc.UnderlyingDB().Order(listParams.Options.CustomDBOrder))
 	}
-	return nil
+	base := qc.Select(listParams.Fields...).Where(listParams.Conditions...).Order(listParams.Orders...)
+	offset, limit := util.MysqlPagination(listParams.PS)
+	if !listParams.Options.WithoutCount {
+		result, count, err = base.FindByPage(offset, limit)
+	} else {
+		if limit == -1 {
+			result, err = base.Find()
+		} else {
+			result, err = base.Offset(offset).Limit(limit).Find()
+		}
+	}
+	return
+}
+
+func (a Bulletin) Delete(conditions []gen.Condition) *errno.Errno {
+	_, err := cladminquery.Q.WithContext(a.ctx).SysBulletin.Where(conditions...).Delete()
+	return gormx.HandleError(err)
 }
