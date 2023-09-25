@@ -21,8 +21,8 @@ type GetResponseWithMultipleParams struct {
 	ParamValue map[string]interface{} `json:"paramValue"`
 }
 
-type UpdateRequest struct {
-	ID         uint64 `json:"configId" binding:"required"`
+type UpsertRequest struct {
+	ID         uint64 `json:"configId"`
 	ParamKey   string `json:"paramKey"`
 	ParamValue string `json:"paramValue"`
 	Status     int32  `json:"status"`

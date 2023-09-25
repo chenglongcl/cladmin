@@ -1,6 +1,7 @@
 package router
 
 import (
+	"cladmin/handler/aliyun/sts"
 	"cladmin/handler/article"
 	"cladmin/handler/bulletin"
 	"cladmin/handler/category"
@@ -33,6 +34,7 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 	g.GET("/refresh", user.Refresh)
 	//api get AliyunOss signature
 	g.GET("/oss/generatesignature", oss.WebUploadSign)
+	g.GET("/sts/assumeRole", sts.GetAssumeRole)
 
 	apiV1 := g.Group("/v1")
 	apiV1.Use(middleware.AuthMiddleware())
@@ -63,9 +65,8 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 		apiV1.GET("/menus/select", menu.Select)
 
 		apiV1.GET("/config/get", config.Get)
-		apiV1.PUT("/config/update", config.Update)
+		apiV1.POST("/config/create", config.Create)
 
-		apiV1.PUT("/oss/saveConfig", oss.SaveConfig)
 		apiV1.POST("/oss/upload", oss.Upload)
 		apiV1.POST("/upload", upload.Upload)
 
@@ -91,6 +92,13 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 	uploadRouter := g.Group("/v1/upload")
 	{
 		uploadRouter.POST("/image", upload.Img)
+	}
+	//multipartUpload
+	multipartUploadRouter := g.Group("/multipartUpload")
+	{
+		multipartUploadRouter.POST("/*objectName", upload.InitOrCompleteMultipartUpload)
+		multipartUploadRouter.PUT("/*objectName", upload.MultipartUploadPart)
+		multipartUploadRouter.GET("/*objectName", upload.ListParts)
 	}
 	//The health check handlers
 	svcd := g.Group("/sd")

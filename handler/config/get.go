@@ -27,6 +27,10 @@ func Get(c *gin.Context) {
 		handler.SendResponse(c, errNo, nil)
 		return
 	}
+	if config == nil || config.ID == 0 {
+		handler.SendResponse(c, errno.ErrRecordNotFound, nil)
+		return
+	}
 	gcr := GetCommonResponse{
 		ID:       config.ID,
 		ParamKey: config.ParamKey,

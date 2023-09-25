@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
+	"gorm.io/gorm/clause"
 )
 
 type config struct {
@@ -33,6 +34,22 @@ func NewConfigService(ctx *gin.Context, opts ...service.Option) Config {
 		serviceOptions: opt,
 		ctx:            ctx,
 	}
+}
+
+func (a Config) UpsertByID(updateData map[string]interface{}) (*cladminmodel.SysConfig, *errno.Errno) {
+	configModel := &cladminmodel.SysConfig{
+		ID:         a.ID,
+		ParamKey:   a.ParamKey,
+		ParamValue: a.ParamValue,
+		Type:       a.Type,
+		Status:     a.Status,
+		Remark:     a.Remark,
+	}
+	err := cladminquery.Q.WithContext(a.ctx).SysConfig.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id"}},
+		DoUpdates: clause.Assignments(updateData),
+	}).Create(configModel)
+	return configModel, gormx.HandleError(err)
 }
 
 func (a Config) Get(fields []field.Expr, conditions []gen.Condition) (*cladminmodel.SysConfig, *errno.Errno) {

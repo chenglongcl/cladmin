@@ -14,6 +14,7 @@ var (
 	ErrRecordNotFound    = &Errno{Code: 20006, Message: "record not found"}
 	ErrRecordExist       = &Errno{Code: 20007, Message: "该条记录已存在"}
 	ErrRecordHasChildren = &Errno{Code: 20008, Message: "该条记录存在子分类"}
+	ErrParams            = &Errno{Code: 20012, Message: "无效参数"}
 
 	// user errors
 	ErrEncrypt           = &Errno{Code: 20101, Message: "Error occurred while encrypting the user password."}
@@ -31,5 +32,5 @@ var (
 	ErrUploadFail               = &Errno{Code: 20203, Message: "Upload fail"}
 	ErrOssGenerateSignatureFail = &Errno{Code: 20204, Message: "AliYunOss Signature fail"}
 	ErrAliYunBucket             = &Errno{Code: 20205, Message: "阿里云OSS Bucket读取失败"}
-	ErrAliYunOssUploadFail      = &Errno{Code: 20205, Message: "阿里云OSS上传失败"}
+	ErrAliYunOssUploadFail      = &Errno{Code: 20206, Message: "阿里云OSS上传失败"}
 )
