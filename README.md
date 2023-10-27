@@ -1,6 +1,6 @@
 # About
 
-此项目是基于[cladmin-vue](https://github.com/chenglongcl/cladmin-vue)二次开发后台管理前端功能。
+此项目是后台管理系统[cladmin-vue](https://github.com/chenglongcl/cladmin-vue)的后端功能。
 
 ## 系统环境
 
@@ -12,7 +12,7 @@ golang语言：go 1.19+
 
 # 说明
 
-> 传送门：[前端系统地址](https://github.com/chenglongcl/cladmin-vue)
+> 传送门：[前端地址](https://github.com/chenglongcl/cladmin-vue)
 
 ## 技术栈
 
