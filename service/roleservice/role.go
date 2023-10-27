@@ -78,7 +78,10 @@ func (a Role) Add() (*cladminmodel.SysRole, *errno.Errno) {
 	//3.1 跳过自动创建关联menu
 	//见https://gorm.io/zh_CN/docs/associations.html 跳过自动创建、更新many2many
 	err = cladminquery.Q.WithContext(a.ctx).SysRole.
-		Omit(cladminquery.Q.SysRole.Menus.Field("*")).Create(roleModel)
+		Omit(
+			cladminquery.Q.SysRole.Menus.Field("*"),
+			cladminquery.Q.SysRole.Users.Field("*"),
+		).Create(roleModel)
 	if errNo := gormx.HandleError(err); errNo != nil {
 		return nil, errNo
 	}
@@ -120,7 +123,10 @@ func (a Role) Edit(roleModel *cladminmodel.SysRole, menuIDs []uint64) *errno.Err
 	}
 	//4.更新数据
 	roleModel.Menus = menuModels
-	err = cladminquery.Q.WithContext(a.ctx).SysRole.Save(roleModel)
+	err = cladminquery.Q.WithContext(a.ctx).SysRole.Omit(
+		cladminquery.Q.SysRole.Menus.Field("*"),
+		cladminquery.Q.SysRole.Users.Field("*"),
+	).Save(roleModel)
 	if errNo := gormx.HandleError(err); errNo != nil {
 		return errNo
 	}
@@ -129,7 +135,7 @@ func (a Role) Edit(roleModel *cladminmodel.SysRole, menuIDs []uint64) *errno.Err
 
 func (a Role) Get(fields []field.Expr, conditions []gen.Condition) (*cladminmodel.SysRole, *errno.Errno) {
 	roleModel, err := cladminquery.Q.WithContext(a.ctx).SysRole.
-		Preload(cladminquery.Q.SysRole.Menus).Select(fields...).Where(conditions...).Take()
+		Preload(cladminquery.Q.SysRole.Menus, cladminquery.Q.SysRole.Users).Select(fields...).Where(conditions...).Take()
 	return roleModel, gormx.HandleError(err)
 }
 

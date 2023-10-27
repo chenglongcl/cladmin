@@ -35,6 +35,8 @@ func newSysMenu(db *gorm.DB, opts ...gen.DOOption) sysMenu {
 	_sysMenu.Type = field.NewInt64(tableName, "type")
 	_sysMenu.Icon = field.NewString(tableName, "icon")
 	_sysMenu.OrderNum = field.NewInt64(tableName, "order_num")
+	_sysMenu.IsTab = field.NewBool(tableName, "is_tab")
+	_sysMenu.Status = field.NewBool(tableName, "status")
 	_sysMenu.CreatedAt = field.NewTime(tableName, "created_at")
 	_sysMenu.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_sysMenu.DeletedAt = field.NewField(tableName, "deleted_at")
@@ -53,6 +55,19 @@ func newSysMenu(db *gorm.DB, opts ...gen.DOOption) sysMenu {
 				field.RelationField
 			}{
 				RelationField: field.NewRelation("Roles.Menus.Roles", "cladminmodel.SysRole"),
+			},
+		},
+		Users: struct {
+			field.RelationField
+			Roles struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("Roles.Users", "cladminmodel.SysUser"),
+			Roles: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Roles.Users.Roles", "cladminmodel.SysRole"),
 			},
 		},
 	}
@@ -74,6 +89,8 @@ type sysMenu struct {
 	Type      field.Int64
 	Icon      field.String
 	OrderNum  field.Int64
+	IsTab     field.Bool
+	Status    field.Bool
 	CreatedAt field.Time
 	UpdatedAt field.Time
 	DeletedAt field.Field
@@ -102,6 +119,8 @@ func (s *sysMenu) updateTableName(table string) *sysMenu {
 	s.Type = field.NewInt64(table, "type")
 	s.Icon = field.NewString(table, "icon")
 	s.OrderNum = field.NewInt64(table, "order_num")
+	s.IsTab = field.NewBool(table, "is_tab")
+	s.Status = field.NewBool(table, "status")
 	s.CreatedAt = field.NewTime(table, "created_at")
 	s.UpdatedAt = field.NewTime(table, "updated_at")
 	s.DeletedAt = field.NewField(table, "deleted_at")
@@ -127,7 +146,7 @@ func (s *sysMenu) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (s *sysMenu) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 12)
+	s.fieldMap = make(map[string]field.Expr, 14)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["parent_id"] = s.ParentID
 	s.fieldMap["name"] = s.Name
@@ -136,6 +155,8 @@ func (s *sysMenu) fillFieldMap() {
 	s.fieldMap["type"] = s.Type
 	s.fieldMap["icon"] = s.Icon
 	s.fieldMap["order_num"] = s.OrderNum
+	s.fieldMap["is_tab"] = s.IsTab
+	s.fieldMap["status"] = s.Status
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
 	s.fieldMap["deleted_at"] = s.DeletedAt
@@ -158,6 +179,12 @@ type sysMenuManyToManyRoles struct {
 	field.RelationField
 
 	Menus struct {
+		field.RelationField
+		Roles struct {
+			field.RelationField
+		}
+	}
+	Users struct {
 		field.RelationField
 		Roles struct {
 			field.RelationField

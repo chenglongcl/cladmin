@@ -31,8 +31,9 @@ func newSysConfig(db *gorm.DB, opts ...gen.DOOption) sysConfig {
 	_sysConfig.ParamKey = field.NewString(tableName, "param_key")
 	_sysConfig.ParamValue = field.NewString(tableName, "param_value")
 	_sysConfig.Type = field.NewInt32(tableName, "type")
-	_sysConfig.Status = field.NewInt32(tableName, "status")
+	_sysConfig.Status = field.NewBool(tableName, "status")
 	_sysConfig.Remark = field.NewString(tableName, "remark")
+	_sysConfig.Locked = field.NewBool(tableName, "locked")
 	_sysConfig.CreatedAt = field.NewTime(tableName, "created_at")
 	_sysConfig.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_sysConfig.DeletedAt = field.NewField(tableName, "deleted_at")
@@ -50,8 +51,9 @@ type sysConfig struct {
 	ParamKey   field.String
 	ParamValue field.String
 	Type       field.Int32
-	Status     field.Int32
+	Status     field.Bool
 	Remark     field.String
+	Locked     field.Bool
 	CreatedAt  field.Time
 	UpdatedAt  field.Time
 	DeletedAt  field.Field
@@ -75,8 +77,9 @@ func (s *sysConfig) updateTableName(table string) *sysConfig {
 	s.ParamKey = field.NewString(table, "param_key")
 	s.ParamValue = field.NewString(table, "param_value")
 	s.Type = field.NewInt32(table, "type")
-	s.Status = field.NewInt32(table, "status")
+	s.Status = field.NewBool(table, "status")
 	s.Remark = field.NewString(table, "remark")
+	s.Locked = field.NewBool(table, "locked")
 	s.CreatedAt = field.NewTime(table, "created_at")
 	s.UpdatedAt = field.NewTime(table, "updated_at")
 	s.DeletedAt = field.NewField(table, "deleted_at")
@@ -104,13 +107,14 @@ func (s *sysConfig) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (s *sysConfig) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 9)
+	s.fieldMap = make(map[string]field.Expr, 10)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["param_key"] = s.ParamKey
 	s.fieldMap["param_value"] = s.ParamValue
 	s.fieldMap["type"] = s.Type
 	s.fieldMap["status"] = s.Status
 	s.fieldMap["remark"] = s.Remark
+	s.fieldMap["locked"] = s.Locked
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
 	s.fieldMap["deleted_at"] = s.DeletedAt

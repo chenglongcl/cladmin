@@ -23,9 +23,7 @@ func List(c *gin.Context) {
 	}
 	ps.Setting(r.Page, r.Limit)
 	articleService := articleservice.NewArticleService(c)
-	articleService.CateID = r.CateID
-	articleService.Title = r.Title
-	info, count, errNo := articleService.InfoList(&service.ListParams{
+	infos, count, errNo := articleService.InfoList(&service.ListParams{
 		PS: ps,
 		Fields: []field.Expr{
 			cladminquery.Q.SysArticle.ID, cladminquery.Q.SysArticle.UserID, cladminquery.Q.SysArticle.CateID,
@@ -37,8 +35,8 @@ func List(c *gin.Context) {
 			if r.CateID != 0 {
 				conditions = append(conditions, cladminquery.Q.SysArticle.CateID.Eq(r.CateID))
 			}
-			if r.Title != "" {
-				conditions = append(conditions, cladminquery.Q.SysArticle.Title.Like(util.StringBuilder("%", r.Title, "%")))
+			if r.Keyword != "" {
+				conditions = append(conditions, cladminquery.Q.SysArticle.Title.Like(util.StringBuilder("%", r.Keyword, "%")))
 			}
 			return conditions
 		}(), []gen.Condition{}...),
@@ -50,5 +48,5 @@ func List(c *gin.Context) {
 		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	handler.SendResponse(c, nil, util.PageUtil(count, ps.Page, ps.Limit, info))
+	handler.SendResponse(c, nil, util.PageUtil(count, ps.Page, ps.Limit, infos))
 }

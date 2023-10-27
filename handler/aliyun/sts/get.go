@@ -24,7 +24,7 @@ func GetAssumeRole(c *gin.Context) {
 	configModel, errNo := configService.Get([]field.Expr{
 		cladminquery.Q.SysConfig.ALL,
 	}, []gen.Condition{
-		cladminquery.Q.SysConfig.ParamKey.Eq("ALIYUN_STS_CONFIG_KEY"),
+		cladminquery.Q.SysConfig.ParamKey.Eq("ALI_STS_CONFIG_KEY"),
 	})
 	if errNo != nil {
 		handler.SendResponse(c, errNo, nil)

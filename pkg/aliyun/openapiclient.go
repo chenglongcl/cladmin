@@ -35,10 +35,10 @@ func initSTSClient() {
 		stsConfig STSConfig
 	)
 	configModel, err := cladminquery.Q.WithContext(context.Background()).SysConfig.Where(
-		cladminquery.Q.SysConfig.ParamKey.Eq("ALIYUN_STS_CONFIG_KEY"),
+		cladminquery.Q.SysConfig.ParamKey.Eq("ALI_STS_CONFIG_KEY"),
 	).Take()
 	if err != nil || configModel == nil || configModel.ID == 0 {
-		log.Errorf(err, "get aliYun sts config error")
+		log.Errorf(err, "获取阿里云STS配置失败")
 		return
 	}
 	_ = jsoniter.UnmarshalFromString(configModel.ParamValue, &stsConfig)

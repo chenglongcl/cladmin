@@ -21,8 +21,7 @@ func Update(c *gin.Context) {
 	}
 	userService := userservice.NewUserService(c)
 	userModel, errNo := userService.Get([]field.Expr{
-		cladminquery.Q.SysUser.ID,
-		cladminquery.Q.SysUser.Password,
+		cladminquery.Q.SysUser.ALL,
 	}, []gen.Condition{
 		cladminquery.Q.SysUser.ID.Eq(r.ID),
 	})
@@ -38,14 +37,16 @@ func Update(c *gin.Context) {
 	if r.Password != "" {
 		userModel.Password, _ = auth.Encrypt(r.Password)
 	}
+	userModel.DeptID = r.DeptID
 	userModel.Mobile = r.Mobile
+	userModel.Gender = r.Gender
 	userModel.Email = r.Email
 	userModel.Status = r.Status
 	if errNo = userService.Edit(userModel, r.RoleIDList); errNo != nil {
 		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	_ = inject.Obj.Common.UserAPI.LoadPolicy(userService.ID)
+	_ = inject.Obj.Common.UserAPI.LoadPolicy(userModel.ID)
 	handler.SendResponse(c, nil, nil)
 }
 

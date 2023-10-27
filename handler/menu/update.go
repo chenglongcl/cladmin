@@ -34,6 +34,8 @@ func Update(c *gin.Context) {
 	menuModel.Type = r.Type
 	menuModel.Icon = r.Icon
 	menuModel.OrderNum = r.OrderNum
+	menuModel.IsTab = r.IsTab
+	menuModel.Status = r.Status
 	errNo = menuService.Edit(menuModel)
 	if errNo != nil {
 		handler.SendResponse(c, errNo, nil)

@@ -21,6 +21,9 @@ var (
 	SysBulletin  *sysBulletin
 	SysCategory  *sysCategory
 	SysConfig    *sysConfig
+	SysDept      *sysDept
+	SysDictData  *sysDictData
+	SysDictType  *sysDictType
 	SysMenu      *sysMenu
 	SysRole      *sysRole
 	SysRoleMenu  *sysRoleMenu
@@ -35,6 +38,9 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	SysBulletin = &Q.SysBulletin
 	SysCategory = &Q.SysCategory
 	SysConfig = &Q.SysConfig
+	SysDept = &Q.SysDept
+	SysDictData = &Q.SysDictData
+	SysDictType = &Q.SysDictType
 	SysMenu = &Q.SysMenu
 	SysRole = &Q.SysRole
 	SysRoleMenu = &Q.SysRoleMenu
@@ -50,6 +56,9 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		SysBulletin:  newSysBulletin(db, opts...),
 		SysCategory:  newSysCategory(db, opts...),
 		SysConfig:    newSysConfig(db, opts...),
+		SysDept:      newSysDept(db, opts...),
+		SysDictData:  newSysDictData(db, opts...),
+		SysDictType:  newSysDictType(db, opts...),
 		SysMenu:      newSysMenu(db, opts...),
 		SysRole:      newSysRole(db, opts...),
 		SysRoleMenu:  newSysRoleMenu(db, opts...),
@@ -66,6 +75,9 @@ type Query struct {
 	SysBulletin  sysBulletin
 	SysCategory  sysCategory
 	SysConfig    sysConfig
+	SysDept      sysDept
+	SysDictData  sysDictData
+	SysDictType  sysDictType
 	SysMenu      sysMenu
 	SysRole      sysRole
 	SysRoleMenu  sysRoleMenu
@@ -83,6 +95,9 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		SysBulletin:  q.SysBulletin.clone(db),
 		SysCategory:  q.SysCategory.clone(db),
 		SysConfig:    q.SysConfig.clone(db),
+		SysDept:      q.SysDept.clone(db),
+		SysDictData:  q.SysDictData.clone(db),
+		SysDictType:  q.SysDictType.clone(db),
 		SysMenu:      q.SysMenu.clone(db),
 		SysRole:      q.SysRole.clone(db),
 		SysRoleMenu:  q.SysRoleMenu.clone(db),
@@ -107,6 +122,9 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		SysBulletin:  q.SysBulletin.replaceDB(db),
 		SysCategory:  q.SysCategory.replaceDB(db),
 		SysConfig:    q.SysConfig.replaceDB(db),
+		SysDept:      q.SysDept.replaceDB(db),
+		SysDictData:  q.SysDictData.replaceDB(db),
+		SysDictType:  q.SysDictType.replaceDB(db),
 		SysMenu:      q.SysMenu.replaceDB(db),
 		SysRole:      q.SysRole.replaceDB(db),
 		SysRoleMenu:  q.SysRoleMenu.replaceDB(db),
@@ -121,6 +139,9 @@ type queryCtx struct {
 	SysBulletin  ISysBulletinDo
 	SysCategory  ISysCategoryDo
 	SysConfig    ISysConfigDo
+	SysDept      ISysDeptDo
+	SysDictData  ISysDictDataDo
+	SysDictType  ISysDictTypeDo
 	SysMenu      ISysMenuDo
 	SysRole      ISysRoleDo
 	SysRoleMenu  ISysRoleMenuDo
@@ -135,6 +156,9 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		SysBulletin:  q.SysBulletin.WithContext(ctx),
 		SysCategory:  q.SysCategory.WithContext(ctx),
 		SysConfig:    q.SysConfig.WithContext(ctx),
+		SysDept:      q.SysDept.WithContext(ctx),
+		SysDictData:  q.SysDictData.WithContext(ctx),
+		SysDictType:  q.SysDictType.WithContext(ctx),
 		SysMenu:      q.SysMenu.WithContext(ctx),
 		SysRole:      q.SysRole.WithContext(ctx),
 		SysRoleMenu:  q.SysRoleMenu.WithContext(ctx),

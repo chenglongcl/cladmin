@@ -13,10 +13,6 @@
 
 /.idea
 /.DS_Store
-/conf/config.yaml
-/log/*.log
-/public/upload/*
-!/public/upload/index.html
 /cladmin
 
 /cmd/.DS_Store

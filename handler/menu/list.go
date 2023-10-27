@@ -3,46 +3,27 @@ package menu
 import (
 	"cladmin/dal/cladmindb/cladminquery"
 	"cladmin/handler"
+	"cladmin/pkg/errno"
 	"cladmin/service"
 	"cladmin/service/menuservice"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
+	"github.com/kakuilan/kgo"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
+	"strings"
 )
 
 func List(c *gin.Context) {
-	menuService := menuservice.NewMenuService(c)
-	info, _, errNo := menuService.InfoList(&service.ListParams{
-		PS: util.PageSetting{},
-		Options: struct {
-			WithoutCount  bool
-			Scenes        string
-			CustomDBOrder string
-			CustomFunc    func() interface{}
-		}{WithoutCount: true},
-		Fields: []field.Expr{
-			cladminquery.Q.SysMenu.ALL,
-		},
-		Conditions: []gen.Condition{},
-		Orders: []field.Expr{
-			cladminquery.Q.SysMenu.ParentID,
-			cladminquery.Q.SysMenu.OrderNum,
-		},
-	})
-	if errNo != nil {
-		handler.SendResponse(c, errNo, nil)
+	var (
+		r ListRequest
+	)
+	if err := c.BindQuery(&r); err != nil {
+		handler.SendResponse(c, nil, errno.ErrBind)
 		return
 	}
-	handler.SendResponse(c, nil, info)
-}
-
-// Select
-// @Description: 上级菜单type 为0,1类型
-// @param c
-func Select(c *gin.Context) {
 	menuService := menuservice.NewMenuService(c)
-	info, _, errNo := menuService.InfoList(&service.ListParams{
+	infos, errNo := menuService.Tree(&service.ListParams{
 		PS: util.PageSetting{},
 		Options: struct {
 			WithoutCount  bool
@@ -55,9 +36,20 @@ func Select(c *gin.Context) {
 		Fields: []field.Expr{
 			cladminquery.Q.SysMenu.ALL,
 		},
-		Conditions: []gen.Condition{
-			cladminquery.Q.SysMenu.Type.Neq(2),
-		},
+		Conditions: append(func() []gen.Condition {
+			conditions := make([]gen.Condition, 0)
+			if r.MenuTypes != "" {
+				strArr := strings.Split(r.MenuTypes, ",")
+				if len(strArr) > 0 {
+					typeArr := make([]int64, len(strArr))
+					for i, s := range strArr {
+						typeArr[i] = kgo.KConv.Str2Int64(s)
+					}
+					conditions = append(conditions, cladminquery.Q.SysMenu.Type.In(typeArr...))
+				}
+			}
+			return conditions
+		}(), []gen.Condition{}...),
 		Orders: []field.Expr{
 			cladminquery.Q.SysMenu.ParentID,
 			cladminquery.Q.SysMenu.OrderNum,
@@ -67,5 +59,5 @@ func Select(c *gin.Context) {
 		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	handler.SendResponse(c, nil, info)
+	handler.SendResponse(c, nil, infos)
 }

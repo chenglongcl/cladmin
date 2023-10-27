@@ -8,8 +8,10 @@ type LoginRequest struct {
 type CreateRequest struct {
 	Username     string   `json:"username" binding:"required,min=1,max=32"`
 	Password     string   `json:"password" binding:"required,min=6,max=128"`
+	DeptID       uint64   `json:"deptId" binding:"required"`
 	Mobile       string   `json:"mobile" binding:"numeric,max=11"`
 	Email        string   `json:"email" binding:"email"`
+	Gender       int32    `json:"gender"`
 	Status       int32    `json:"status"`
 	CreateUserID uint64   `json:"createUserId"`
 	RoleIdList   []uint64 `json:"roleIdList"`
@@ -37,8 +39,12 @@ type GetResponse struct {
 	Username     string   `json:"username"`
 	CreateTime   string   `json:"createTime"`
 	CreateUserID uint64   `json:"createUserId"`
+	DeptID       uint64   `json:"deptId"`
+	DeptName     string   `json:"deptName"`
 	Email        string   `json:"email"`
 	Mobile       string   `json:"mobile"`
+	Gender       int32    `json:"gender"`
+	SuperAdmin   bool     `json:"superAdmin"`
 	Status       int32    `json:"status"`
 	RoleIDList   []uint64 `json:"roleIdList"`
 }
@@ -47,8 +53,10 @@ type UpdateRequest struct {
 	ID         uint64   `json:"userId" binding:"required"`
 	Username   string   `json:"username" binding:"required,min=1,max=32"`
 	Password   string   `json:"password"`
+	DeptID     uint64   `json:"deptId" binding:"required"`
 	Mobile     string   `json:"mobile" binding:"numeric,max=11"`
 	Email      string   `json:"email" binding:"email"`
+	Gender     int32    `json:"gender"`
 	Status     int32    `json:"status"`
 	RoleIDList []uint64 `json:"roleIdList" binding:"required"`
 }
@@ -61,6 +69,6 @@ type DeleteRequest struct {
 	Ids []uint64 `json:"ids" binding:"required"`
 }
 
-type LogoutLoginRequest struct {
+type LogoutUserRequest struct {
 	Ids []uint64 `json:"ids" binding:"required"`
 }

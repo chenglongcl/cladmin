@@ -7,6 +7,8 @@ type UserInfo struct {
 	Username     string `json:"username"`
 	Mobile       string `json:"mobile"`
 	Email        string `json:"email"`
+	Gender       int32  `json:"gender"`
+	SuperAdmin   bool   `json:"superAdmin"`
 	Status       int32  `json:"status"`
 	CreateUserID uint64 `json:"createUserId"`
 	CreateTime   string `json:"createTime"`

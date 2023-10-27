@@ -6,9 +6,11 @@ import (
 	"cladmin/dal/cladmindb/cladminquery"
 	"cladmin/pkg/errno"
 	"cladmin/pkg/gormx"
+	"cladmin/pkg/tree"
 	"cladmin/service"
 	"cladmin/util"
 	"github.com/casbin/casbin"
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
@@ -26,6 +28,8 @@ type menu struct {
 	Type           int64
 	Icon           string
 	OrderNum       int64
+	IsTab          bool
+	Status         bool
 	Enforcer       *casbin.Enforcer `inject:""`
 	serviceOptions *service.Options
 	ctx            *gin.Context
@@ -53,6 +57,8 @@ func (a Menu) Add() (*cladminmodel.SysMenu, *errno.Errno) {
 		Type:     a.Type,
 		Icon:     a.Icon,
 		OrderNum: a.OrderNum,
+		IsTab:    a.IsTab,
+		Status:   a.Status,
 	}
 	err := cladminquery.Q.WithContext(a.ctx).SysMenu.Create(menuModel)
 	if errNo := gormx.HandleError(err); errNo != nil {
@@ -107,7 +113,6 @@ func (a Menu) InfoList(listParams *service.ListParams) ([]*cladminentity.MenuInf
 				Perms:      menuModel.Perms,
 				Type:       menuModel.Type,
 				Icon:       menuModel.Icon,
-				Open:       0,
 				OrderNum:   menuModel.OrderNum,
 				CreateTime: menuModel.CreatedAt.Format("2006-01-02 15:04:05"),
 				UpdateTime: menuModel.UpdatedAt.Format("2006-01-02 15:04:05"),
@@ -126,6 +131,29 @@ func (a Menu) InfoList(listParams *service.ListParams) ([]*cladminentity.MenuInf
 		info = append(info, menuList.IdMap[id])
 	}
 	return info, uint64(count), nil
+}
+
+func (a Menu) Tree(listParams *service.ListParams) ([]*cladminentity.MenuTree, *errno.Errno) {
+	menuModels, _, err := a.List(listParams)
+	if errNo := gormx.HandleError(err); errNo != nil {
+		return nil, errNo
+	}
+	data := make([]*cladminentity.MenuTree, 0)
+	for _, menuModel := range menuModels {
+		data = append(data, &cladminentity.MenuTree{
+			ID:         menuModel.ID,
+			Name:       menuModel.Name,
+			OrderNum:   menuModel.OrderNum,
+			IsTab:      menuModel.IsTab,
+			Icon:       menuModel.Icon,
+			Url:        menuModel.URL,
+			ParentID:   menuModel.ParentID,
+			ParentName: "",
+			Perms:      menuModel.Perms,
+			Type:       menuModel.Type,
+		})
+	}
+	return tree.ToTree[cladminentity.MenuTree](data, &cladminentity.MenuTree{}), nil
 }
 
 func (a Menu) List(listParams *service.ListParams) (result []*cladminmodel.SysMenu, count int64, err error) {
@@ -173,12 +201,22 @@ func (a Menu) Delete(menuModel *cladminmodel.SysMenu) *errno.Errno {
 	return nil
 }
 
-func (a Menu) GetMenuNavByUserID(userID uint64) ([]*MenuTree, []string, *errno.Errno) {
+func (a Menu) GetPermissionsByUserID(userID uint64) ([]string, *errno.Errno) {
 	var (
+		superAdmin bool
 		menuModels []*cladminmodel.SysMenu
 		err        error
 		errNo      *errno.Errno
 	)
+	//
+	if err = cladminquery.Q.WithContext(a.ctx).SysUser.Select(
+		cladminquery.Q.SysUser.SuperAdmin,
+	).Where(
+		cladminquery.Q.SysUser.ID.Eq(userID),
+	).Scan(&superAdmin); err != nil {
+		return nil, gormx.HandleError(err)
+	}
+	//
 	menuModels, _, err = a.List(&service.ListParams{
 		PS: util.PageSetting{},
 		Options: struct {
@@ -188,11 +226,13 @@ func (a Menu) GetMenuNavByUserID(userID uint64) ([]*MenuTree, []string, *errno.E
 			CustomFunc    func() interface{}
 		}{WithoutCount: true},
 		Fields: []field.Expr{
-			cladminquery.Q.SysMenu.ALL,
+			cladminquery.Q.SysMenu.ID,
+			cladminquery.Q.SysMenu.Perms,
 		},
 		Conditions: append(func() []gen.Condition {
 			conditions := make([]gen.Condition, 0)
-			if userID != 1 {
+			conditions = append(conditions, cladminquery.Q.SysMenu.Status.Is(true))
+			if !superAdmin {
 				conditions = append(conditions, cladminquery.Q.SysUserRole.UserID.Eq(userID))
 			}
 			return conditions
@@ -205,7 +245,7 @@ func (a Menu) GetMenuNavByUserID(userID uint64) ([]*MenuTree, []string, *errno.E
 				Table schema.Tabler
 				On    []field.Expr
 			}, 0)
-			if userID != 1 {
+			if !superAdmin {
 				joins = append(joins, []struct {
 					Table schema.Tabler
 					On    []field.Expr
@@ -233,7 +273,7 @@ func (a Menu) GetMenuNavByUserID(userID uint64) ([]*MenuTree, []string, *errno.E
 			return joins
 		}(),
 		Groups: func() []field.Expr {
-			if userID != 1 {
+			if !superAdmin {
 				return []field.Expr{
 					cladminquery.Q.SysMenu.ID,
 				}
@@ -247,19 +287,113 @@ func (a Menu) GetMenuNavByUserID(userID uint64) ([]*MenuTree, []string, *errno.E
 		},
 	})
 	if errNo = gormx.HandleError(err); errNo != nil {
-		return nil, nil, errNo
+		return nil, errNo
 	}
-	var (
-		menuTrees MenuTrees
-	)
 	permissions := make([]string, 0)
 	for _, menuModel := range menuModels {
+		if menuModel.Perms != "" {
+			pSlice := strings.Split(menuModel.Perms, ",")
+			permissions = append(permissions, pSlice...)
+		}
+	}
+	return permissions, nil
+}
+
+func (a Menu) GetMenuNavByUserID(userID uint64) ([]*cladminentity.MenuTree, *errno.Errno) {
+	var (
+		superAdmin bool
+		menuModels []*cladminmodel.SysMenu
+		err        error
+		errNo      *errno.Errno
+	)
+	//
+	if err = cladminquery.Q.WithContext(a.ctx).SysUser.Select(
+		cladminquery.Q.SysUser.SuperAdmin,
+	).Where(
+		cladminquery.Q.SysUser.ID.Eq(userID),
+	).Scan(&superAdmin); err != nil {
+		return nil, gormx.HandleError(err)
+	}
+	//
+	menuModels, _, err = a.List(&service.ListParams{
+		PS: util.PageSetting{},
+		Options: struct {
+			WithoutCount  bool
+			Scenes        string
+			CustomDBOrder string
+			CustomFunc    func() interface{}
+		}{WithoutCount: true},
+		Fields: []field.Expr{
+			cladminquery.Q.SysMenu.ALL,
+		},
+		Conditions: append(func() []gen.Condition {
+			conditions := make([]gen.Condition, 0)
+			conditions = append(conditions, cladminquery.Q.SysMenu.Status.Is(true))
+			if !superAdmin {
+				conditions = append(conditions, cladminquery.Q.SysUserRole.UserID.Eq(userID))
+			}
+			return conditions
+		}(), []gen.Condition{}...),
+		Joins: func() []struct {
+			Table schema.Tabler
+			On    []field.Expr
+		} {
+			joins := make([]struct {
+				Table schema.Tabler
+				On    []field.Expr
+			}, 0)
+			if !superAdmin {
+				joins = append(joins, []struct {
+					Table schema.Tabler
+					On    []field.Expr
+				}{
+					{
+						Table: cladminquery.Q.SysRoleMenu,
+						On: []field.Expr{
+							cladminquery.Q.SysRoleMenu.MenuID.EqCol(cladminquery.Q.SysMenu.ID),
+						},
+					},
+					{
+						Table: cladminquery.Q.SysRole,
+						On: []field.Expr{
+							cladminquery.Q.SysRole.ID.EqCol(cladminquery.Q.SysRoleMenu.RoleID),
+						},
+					},
+					{
+						Table: cladminquery.Q.SysUserRole,
+						On: []field.Expr{
+							cladminquery.Q.SysUserRole.RoleID.EqCol(cladminquery.Q.SysRole.ID),
+						},
+					},
+				}...)
+			}
+			return joins
+		}(),
+		Groups: func() []field.Expr {
+			if !superAdmin {
+				return []field.Expr{
+					cladminquery.Q.SysMenu.ID,
+				}
+			}
+			return nil
+		}(),
+		Orders: []field.Expr{
+			cladminquery.Q.SysMenu.ParentID,
+			cladminquery.Q.SysMenu.OrderNum,
+			cladminquery.Q.SysMenu.ID,
+		},
+	})
+	if errNo = gormx.HandleError(err); errNo != nil {
+		return nil, errNo
+	}
+	data := make([]*cladminentity.MenuTree, 0)
+	for _, menuModel := range menuModels {
 		if menuModel.Type != 2 {
-			menuTrees = append(menuTrees, &MenuTree{
-				MenuID:     menuModel.ID,
+			data = append(data, &cladminentity.MenuTree{
+				ID:         menuModel.ID,
 				Name:       menuModel.Name,
-				Open:       0,
 				OrderNum:   menuModel.OrderNum,
+				IsTab:      menuModel.IsTab,
 				Icon:       menuModel.Icon,
 				Url:        menuModel.URL,
 				ParentID:   menuModel.ParentID,
@@ -268,62 +402,9 @@ func (a Menu) GetMenuNavByUserID(userID uint64) ([]*MenuTree, []string, *errno.E
 				Type:       menuModel.Type,
 			})
 		}
-		if menuModel.Perms != "" {
-			pSlice := strings.Split(menuModel.Perms, ",")
-			permissions = append(permissions, pSlice...)
-		}
 	}
-	list := menuTrees.ToTree()
-	return list, permissions, nil
-}
-
-// MenuTree 菜单树
-type MenuTree struct {
-	MenuID     uint64       `json:"menuId"`
-	Name       string       `json:"name"`
-	Open       int64        `json:"open"`
-	OrderNum   int64        `json:"orderNum"`
-	Icon       string       `json:"icon"`
-	Url        string       `json:"url"`
-	ParentID   uint64       `json:"parentId"`
-	ParentName string       `json:"parentName"`
-	Perms      string       `json:"perms"`
-	Type       int64        `json:"type"`
-	List       *[]*MenuTree `json:"list,omitempty"`
-}
-
-// MenuTrees 菜单树列表
-type MenuTrees []*MenuTree
-
-// ForEach 遍历数据项
-func (a MenuTrees) ForEach(fn func(*MenuTree, int)) MenuTrees {
-	for i, item := range a {
-		fn(item, i)
-	}
-	return a
-}
-
-// ToTree 转换为树形结构
-func (a MenuTrees) ToTree() []*MenuTree {
-	mi := make(map[uint64]*MenuTree)
-	for _, item := range a {
-		mi[item.MenuID] = item
-	}
-	var list []*MenuTree
-	for _, item := range a {
-		if item.ParentID == 0 {
-			list = append(list, item)
-			continue
-		}
-		if pItem, ok := mi[item.ParentID]; ok {
-			if pItem.List == nil {
-				var children []*MenuTree
-				children = append(children, item)
-				pItem.List = &children
-				continue
-			}
-			*pItem.List = append(*pItem.List, item)
-		}
-	}
-	return list
+	list := slice.Filter(tree.ToTree[cladminentity.MenuTree](data, &cladminentity.MenuTree{}), func(i int, item *cladminentity.MenuTree) bool {
+		return item.Type == 0 && item.Children != nil
+	})
+	return list, nil
 }

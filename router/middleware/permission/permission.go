@@ -10,8 +10,9 @@ import (
 
 func CasbinMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		username, _ := c.Get("username")
-		if b, err := inject.Obj.Enforcer.EnforceSafe(username, c.Request.URL.Path); err != nil {
+		username := c.GetString("username")
+		superAdmin := c.GetBool("superAdmin")
+		if b, err := inject.Obj.Enforcer.EnforceSafe(username, c.Request.URL.Path, superAdmin); err != nil {
 			log.Fatal("Casbin EnforceSafe Error", err)
 			handler.SendResponseUnauthorized(c, errno.ErrCasbin, nil)
 			c.Abort()

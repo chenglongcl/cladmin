@@ -44,6 +44,12 @@ func newSysRole(db *gorm.DB, opts ...gen.DOOption) sysRole {
 			Menus struct {
 				field.RelationField
 			}
+			Users struct {
+				field.RelationField
+				Roles struct {
+					field.RelationField
+				}
+			}
 		}{
 			RelationField: field.NewRelation("Menus.Roles", "cladminmodel.SysRole"),
 			Menus: struct {
@@ -51,7 +57,26 @@ func newSysRole(db *gorm.DB, opts ...gen.DOOption) sysRole {
 			}{
 				RelationField: field.NewRelation("Menus.Roles.Menus", "cladminmodel.SysMenu"),
 			},
+			Users: struct {
+				field.RelationField
+				Roles struct {
+					field.RelationField
+				}
+			}{
+				RelationField: field.NewRelation("Menus.Roles.Users", "cladminmodel.SysUser"),
+				Roles: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("Menus.Roles.Users.Roles", "cladminmodel.SysRole"),
+				},
+			},
 		},
+	}
+
+	_sysRole.Users = sysRoleManyToManyUsers{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Users", "cladminmodel.SysUser"),
 	}
 
 	_sysRole.fillFieldMap()
@@ -72,6 +97,8 @@ type sysRole struct {
 	UpdatedAt    field.Time
 	DeletedAt    field.Field
 	Menus        sysRoleManyToManyMenus
+
+	Users sysRoleManyToManyUsers
 
 	fieldMap map[string]field.Expr
 }
@@ -118,7 +145,7 @@ func (s *sysRole) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (s *sysRole) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 9)
+	s.fieldMap = make(map[string]field.Expr, 10)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["role_name"] = s.RoleName
 	s.fieldMap["remark"] = s.Remark
@@ -149,6 +176,12 @@ type sysRoleManyToManyMenus struct {
 		field.RelationField
 		Menus struct {
 			field.RelationField
+		}
+		Users struct {
+			field.RelationField
+			Roles struct {
+				field.RelationField
+			}
 		}
 	}
 }
@@ -215,6 +248,77 @@ func (a sysRoleManyToManyMenusTx) Clear() error {
 }
 
 func (a sysRoleManyToManyMenusTx) Count() int64 {
+	return a.tx.Count()
+}
+
+type sysRoleManyToManyUsers struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a sysRoleManyToManyUsers) Where(conds ...field.Expr) *sysRoleManyToManyUsers {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a sysRoleManyToManyUsers) WithContext(ctx context.Context) *sysRoleManyToManyUsers {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a sysRoleManyToManyUsers) Session(session *gorm.Session) *sysRoleManyToManyUsers {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a sysRoleManyToManyUsers) Model(m *cladminmodel.SysRole) *sysRoleManyToManyUsersTx {
+	return &sysRoleManyToManyUsersTx{a.db.Model(m).Association(a.Name())}
+}
+
+type sysRoleManyToManyUsersTx struct{ tx *gorm.Association }
+
+func (a sysRoleManyToManyUsersTx) Find() (result []*cladminmodel.SysUser, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a sysRoleManyToManyUsersTx) Append(values ...*cladminmodel.SysUser) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a sysRoleManyToManyUsersTx) Replace(values ...*cladminmodel.SysUser) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a sysRoleManyToManyUsersTx) Delete(values ...*cladminmodel.SysUser) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a sysRoleManyToManyUsersTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a sysRoleManyToManyUsersTx) Count() int64 {
 	return a.tx.Count()
 }
 

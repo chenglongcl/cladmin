@@ -43,7 +43,8 @@ func main() {
 	g.ApplyBasic(
 		cladminmodel.SysUser{}, cladminmodel.SysMenu{}, cladminmodel.SysRole{}, cladminmodel.SysRoleMenu{},
 		cladminmodel.SysUserRole{}, cladminmodel.SysArticle{}, cladminmodel.SysBulletin{}, cladminmodel.SysCategory{},
-		cladminmodel.SysConfig{}, cladminmodel.SysUserToken{},
+		cladminmodel.SysConfig{}, cladminmodel.SysUserToken{}, cladminmodel.SysDictType{}, cladminmodel.SysDictData{},
+		cladminmodel.SysDept{},
 	)
 
 	g.Execute()

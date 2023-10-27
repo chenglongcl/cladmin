@@ -23,6 +23,7 @@ var (
 type Context struct {
 	ID         uint64
 	Username   string
+	SuperAdmin bool
 	ExpiredAt  int64
 	RefreshExp int64
 }
@@ -54,13 +55,14 @@ func Sign(c *gin.Context, ctx Context, secret string) (tokenString string, expir
 	tokenRefreshExp := now.Add(mt).Unix()
 	// The token content.
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":       ctx.ID,
-		"username": ctx.Username,
-		"iat":      now.Unix(),
-		"nbf":      now.Unix(),
-		"sub":      ctx.ID,
-		"exp":      tokenExp,
-		"rexp":     tokenRefreshExp,
+		"id":         ctx.ID,
+		"username":   ctx.Username,
+		"superAdmin": ctx.SuperAdmin,
+		"iat":        now.Unix(),
+		"nbf":        now.Unix(),
+		"sub":        ctx.ID,
+		"exp":        tokenExp,
+		"rexp":       tokenRefreshExp,
 	})
 	// Sign the token with the specified secret.
 	tokenString, err = token.SignedString([]byte(secret))
@@ -83,7 +85,7 @@ func ParseRequest(c *gin.Context) (*Context, error) {
 
 	var t string
 	// Parse the header to get the token part.
-	fmt.Sscanf(header, "Bearer %s", &t)
+	_, _ = fmt.Sscanf(header, "Bearer %s", &t)
 	return Parse(t, secret, c)
 }
 
@@ -105,9 +107,11 @@ func Parse(tokenString string, secret string, c *gin.Context) (*Context, error) 
 		}
 		ctx.ID = uint64(claims["id"].(float64))
 		ctx.Username = claims["username"].(string)
+		ctx.SuperAdmin = claims["superAdmin"].(bool)
 		c.Set("JWT_PAYLOAD", claims)
 		c.Set("userID", ctx.ID)
 		c.Set("username", ctx.Username)
+		c.Set("superAdmin", ctx.SuperAdmin)
 		return ctx, nil
 
 		// Other errors.
@@ -140,8 +144,9 @@ func ParseRefreshRequest(c *gin.Context) (ctx *Context, err error, tokenString s
 	}
 	//Refresh Token
 	tokenString, expiredAt, refreshExpiredAt, err = Sign(c, Context{
-		ID:       ctx.ID,
-		Username: ctx.Username,
+		ID:         ctx.ID,
+		Username:   ctx.Username,
+		SuperAdmin: ctx.SuperAdmin,
 	}, secret)
 	//Add TokenBlackList
 	go func() {
@@ -178,11 +183,13 @@ func RefreshParse(tokenString string, secret string, c *gin.Context) (*Context, 
 		}
 		ctx.ID = uint64(claims["id"].(float64))
 		ctx.Username = claims["username"].(string)
+		ctx.SuperAdmin = claims["superAdmin"].(bool)
 		ctx.ExpiredAt = int64(claims["exp"].(float64))
 		ctx.RefreshExp = refreshExp
 		c.Set("JWT_PAYLOAD", claims)
 		c.Set("userID", ctx.ID)
 		c.Set("username", ctx.Username)
+		c.Set("superAdmin", ctx.SuperAdmin)
 		return ctx, nil
 		// Other errors.
 	}

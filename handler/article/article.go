@@ -32,10 +32,10 @@ type GetResponse struct {
 }
 
 type ListRequest struct {
-	Title  string `form:"title"`
-	CateID uint64 `form:"cateId"`
-	Page   uint64 `form:"page"`
-	Limit  uint64 `form:"limit"`
+	CateID  uint64 `form:"cateId"`
+	Keyword string `form:"keyword"`
+	Page    uint64 `form:"page"`
+	Limit   uint64 `form:"limit"`
 }
 
 type DeleteRequest struct {

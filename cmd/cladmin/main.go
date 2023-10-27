@@ -3,9 +3,9 @@ package main
 import (
 	"cladmin/config"
 	"cladmin/pkg/aliyun"
+	"cladmin/pkg/cloudstorage"
 	"cladmin/pkg/gormx"
 	"cladmin/pkg/json"
-	"cladmin/pkg/oss"
 	"cladmin/pkg/redisgo"
 	"cladmin/pkg/redsync"
 	v "cladmin/pkg/version"
@@ -68,8 +68,8 @@ func program(state overseer.State) {
 	//init Casbin
 	inject.Init()
 	err := inject.LoadCasbinPolicyData()
-	//init oss
-	oss.Init()
+	//init cloudStorage
+	cloudstorage.Init()
 	//init aliYun client
 	aliyun.InitAilYunOpenApiClients()
 	if err != nil {

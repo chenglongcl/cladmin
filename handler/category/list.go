@@ -13,7 +13,7 @@ import (
 
 func List(c *gin.Context) {
 	categoryService := categoryservice.NewCategoryService(c)
-	infos, _, errNo := categoryService.InfoList(&service.ListParams{
+	infos, errNo := categoryService.Tree(&service.ListParams{
 		PS: util.PageSetting{},
 		Options: struct {
 			WithoutCount  bool

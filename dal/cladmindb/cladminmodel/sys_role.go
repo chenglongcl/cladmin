@@ -18,6 +18,7 @@ type SysRole struct {
 	UpdatedAt    *time.Time     `gorm:"column:updated_at;type:timestamp" json:"updatedAt"`
 	DeletedAt    gorm.DeletedAt `gorm:"column:deleted_at;type:timestamp" json:"deletedAt"`
 	Menus        []*SysMenu     `gorm:"many2many:sys_role_menu;foreignKey:id;joinForeignKey:role_id;references:id;joinReferences:menu_id;" json:"menus"`
+	Users        []*SysUser     `gorm:"many2many:sys_user_role;foreignKey:id;joinForeignKey:role_id;references:id;joinReferences:user_id;" json:"users"`
 }
 
 // TableName SysRole's table name

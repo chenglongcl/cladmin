@@ -18,8 +18,10 @@ func Create(c *gin.Context) {
 	userService := userservice.NewUserService(c)
 	userService.Username = r.Username
 	userService.Password = r.Password
+	userService.DeptID = r.DeptID
 	userService.Mobile = r.Mobile
 	userService.Email = r.Email
+	userService.Gender = r.Gender
 	userService.Status = r.Status
 	userService.CreateUserID = r.CreateUserID
 	userService.RoleIDList = r.RoleIdList
@@ -28,7 +30,7 @@ func Create(c *gin.Context) {
 		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	t, e, re, _ := token.Sign(c, token.Context{ID: userModel.ID, Username: userService.Username}, "")
+	t, e, re, _ := token.Sign(c, token.Context{ID: userModel.ID, Username: userModel.Username, SuperAdmin: userModel.SuperAdmin}, "")
 	_ = inject.Obj.Common.UserAPI.LoadPolicy(userModel.ID)
 	resp := CreateResponse{
 		Username:         r.Username,

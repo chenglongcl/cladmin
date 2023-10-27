@@ -8,6 +8,8 @@ type CreateRequest struct {
 	Type     int64  `json:"type" binding:"oneof=0 1 2"`
 	Icon     string `json:"icon"`
 	OrderNum int64  `json:"orderNum"`
+	IsTab    bool   `json:"isTab"`
+	Status   bool   `json:"status"`
 }
 
 type GetRequest struct {
@@ -24,8 +26,9 @@ type GetResponse struct {
 	Type       int64  `json:"type"`
 	Icon       string `json:"icon"`
 	OrderNum   int64  `json:"orderNum"`
-	Open       int64  `json:"open"`
+	IsTab      bool   `json:"isTab"`
 	CreateTime string `json:"createTime"`
+	Status     bool   `json:"status"`
 }
 
 type UpdateRequest struct {
@@ -37,8 +40,14 @@ type UpdateRequest struct {
 	Type     int64  `json:"type" binding:"oneof=0 1 2"`
 	Icon     string `json:"icon"`
 	OrderNum int64  `json:"orderNum"`
+	IsTab    bool   `json:"isTab"`
+	Status   bool   `json:"status"`
 }
 
 type DeleteRequest struct {
 	ID uint64 `form:"id" binding:"required"`
+}
+
+type ListRequest struct {
+	MenuTypes string `form:"menuTypes"`
 }

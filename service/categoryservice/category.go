@@ -6,6 +6,7 @@ import (
 	"cladmin/dal/cladmindb/cladminquery"
 	"cladmin/pkg/errno"
 	"cladmin/pkg/gormx"
+	"cladmin/pkg/tree"
 	"cladmin/service"
 	"cladmin/util"
 	"github.com/gin-gonic/gin"
@@ -81,7 +82,7 @@ func (a Category) InfoList(listParams *service.ListParams) ([]*cladminentity.Cat
 			categoryList.Lock.Lock()
 			defer categoryList.Lock.Unlock()
 			categoryList.IdMap[categoryModel.ID] = &cladminentity.CategoryInfo{
-				Id:         categoryModel.ID,
+				ID:         categoryModel.ID,
 				ParentID:   categoryModel.ParentID,
 				Name:       categoryModel.Name,
 				Icon:       categoryModel.Icon,
@@ -102,6 +103,26 @@ func (a Category) InfoList(listParams *service.ListParams) ([]*cladminentity.Cat
 		info = append(info, categoryList.IdMap[id])
 	}
 	return info, uint64(count), nil
+}
+
+func (a Category) Tree(listParams *service.ListParams) ([]*cladminentity.CategoryTree, *errno.Errno) {
+	categoryModels, _, err := a.List(listParams)
+	if errNo := gormx.HandleError(err); errNo != nil {
+		return nil, errNo
+	}
+	data := make([]*cladminentity.CategoryTree, 0)
+	for _, categoryModel := range categoryModels {
+		data = append(data, &cladminentity.CategoryTree{
+			ID:         categoryModel.ID,
+			ParentID:   categoryModel.ParentID,
+			Name:       categoryModel.Name,
+			Icon:       categoryModel.Icon,
+			OrderNum:   categoryModel.OrderNum,
+			CreateTime: categoryModel.CreatedAt.Format("2006-01-02 15:04:05"),
+			UpdateTime: categoryModel.UpdatedAt.Format("2006-01-02 15:04:05"),
+		})
+	}
+	return tree.ToTree[cladminentity.CategoryTree](data, &cladminentity.CategoryTree{}), nil
 }
 
 func (a Category) List(listParams *service.ListParams) (result []*cladminmodel.SysCategory, count int64, err error) {

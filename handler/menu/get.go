@@ -26,6 +26,10 @@ func Get(c *gin.Context) {
 		handler.SendResponse(c, errNo, nil)
 		return
 	}
+	if menuModel == nil || menuModel.ID == 0 {
+		handler.SendResponse(c, errno.ErrRecordNotFound, nil)
+		return
+	}
 	handler.SendResponse(c, nil, GetResponse{
 		ID:         menuModel.ID,
 		ParentID:   menuModel.ParentID,
@@ -36,7 +40,8 @@ func Get(c *gin.Context) {
 		Type:       menuModel.Type,
 		Icon:       menuModel.Icon,
 		OrderNum:   menuModel.OrderNum,
-		Open:       0,
+		IsTab:      menuModel.IsTab,
+		Status:     menuModel.Status,
 		CreateTime: menuModel.CreatedAt.Format("2006-01-02 15:04:05"),
 	})
 }
@@ -44,13 +49,21 @@ func Get(c *gin.Context) {
 func GetMenuNav(c *gin.Context) {
 	userID := c.GetUint64("userID")
 	menuService := menuservice.NewMenuService(c)
-	list, permissions, errNo := menuService.GetMenuNavByUserID(userID)
+	menus, errNo := menuService.GetMenuNavByUserID(userID)
 	if errNo != nil {
 		handler.SendResponse(c, errNo, nil)
 		return
 	}
-	handler.SendResponse(c, nil, map[string]interface{}{
-		"menuList":    list,
-		"permissions": permissions,
-	})
+	handler.SendResponse(c, nil, menus)
+}
+
+func GetPermissions(c *gin.Context) {
+	userID := c.GetUint64("userID")
+	menuService := menuservice.NewMenuService(c)
+	permissions, errNo := menuService.GetPermissionsByUserID(userID)
+	if errNo != nil {
+		handler.SendResponse(c, errNo, nil)
+		return
+	}
+	handler.SendResponse(c, nil, permissions)
 }

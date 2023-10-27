@@ -22,8 +22,10 @@ type user struct {
 	ID             uint64
 	Username       string
 	Password       string
+	DeptID         uint64
 	Mobile         string
 	Email          string
+	Gender         int32
 	Status         int32
 	CreateUserID   uint64
 	RoleIDList     []uint64
@@ -75,8 +77,10 @@ func (a User) Add() (*cladminmodel.SysUser, *errno.Errno) {
 	userModel := &cladminmodel.SysUser{
 		Username:     a.Username,
 		Password:     password,
+		DeptID:       a.DeptID,
 		Email:        a.Email,
 		Mobile:       a.Mobile,
+		Gender:       a.Gender,
 		Status:       a.Status,
 		CreateUserID: a.CreateUserID,
 		Roles:        roleModels,
@@ -126,7 +130,10 @@ func (a User) Edit(userModel *cladminmodel.SysUser, roleIDs []uint64) *errno.Err
 	}
 	//4.更新用户
 	userModel.Roles = roleModels
-	err = cladminquery.Q.WithContext(a.ctx).SysUser.Save(userModel)
+	err = cladminquery.Q.WithContext(a.ctx).SysUser.
+		Omit(
+			cladminquery.Q.SysUser.Roles.Field("*"),
+		).Save(userModel)
 	if errNo := gormx.HandleError(err); errNo != nil {
 		return errNo
 	}
@@ -162,19 +169,21 @@ func (a User) InfoList(listParams *service.ListParams) ([]*cladminentity.UserInf
 	finished := make(chan bool, 1)
 	for _, userModel := range userModels {
 		wg.Add(1)
-		go func(user *cladminmodel.SysUser) {
+		go func(userModel *cladminmodel.SysUser) {
 			defer wg.Done()
 			userList.Lock.Lock()
 			defer userList.Lock.Unlock()
-			userList.IdMap[user.ID] = &cladminentity.UserInfo{
-				ID:           user.ID,
-				Username:     user.Username,
-				Mobile:       user.Mobile,
-				Email:        user.Email,
-				Status:       user.Status,
-				CreateUserID: user.CreateUserID,
-				CreateTime:   user.CreatedAt.Format("2006-01-02 15:04:05"),
-				UpdateTime:   user.UpdatedAt.Format("2006-01-02 15:04:05"),
+			userList.IdMap[userModel.ID] = &cladminentity.UserInfo{
+				ID:           userModel.ID,
+				Username:     userModel.Username,
+				Mobile:       userModel.Mobile,
+				Email:        userModel.Email,
+				Gender:       userModel.Gender,
+				SuperAdmin:   userModel.SuperAdmin,
+				Status:       userModel.Status,
+				CreateUserID: userModel.CreateUserID,
+				CreateTime:   userModel.CreatedAt.Format("2006-01-02 15:04:05"),
+				UpdateTime:   userModel.UpdatedAt.Format("2006-01-02 15:04:05"),
 			}
 		}(userModel)
 	}

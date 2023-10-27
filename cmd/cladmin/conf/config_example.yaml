@@ -35,8 +35,3 @@ redis_conf:
   password:
   prefix: "cladmin:"
 upload_path: public/upload/
-aliyun_oss: #aliyunOss
-  access_key_id:
-  access_key_secret:
-  bucket_name:
-  end_point:

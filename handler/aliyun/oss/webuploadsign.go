@@ -2,7 +2,7 @@ package oss
 
 import (
 	"cladmin/handler"
-	"cladmin/pkg/oss/client"
+	"cladmin/pkg/cloudstorage/client"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )

@@ -45,7 +45,7 @@ func Login(c *gin.Context) {
 		return
 	}
 	// Sign the json web token.
-	t, e, re, err := token.Sign(c, token.Context{ID: userModel.ID, Username: userModel.Username}, "")
+	t, e, re, err := token.Sign(c, token.Context{ID: userModel.ID, Username: userModel.Username, SuperAdmin: userModel.SuperAdmin}, "")
 	if err != nil {
 		handler.SendResponse(c, errno.ErrToken, nil)
 		return
@@ -98,11 +98,11 @@ func Logout(c *gin.Context) {
 	handler.SendResponse(c, nil, nil)
 }
 
-// LogoutLogin
+// LogoutUser
 // @Description: 注销管理员登录
 // @param c
-func LogoutLogin(c *gin.Context) {
-	var r LogoutLoginRequest
+func LogoutUser(c *gin.Context) {
+	var r LogoutUserRequest
 	if err := c.Bind(&r); err != nil {
 		handler.SendResponse(c, errno.ErrBind, nil)
 		return

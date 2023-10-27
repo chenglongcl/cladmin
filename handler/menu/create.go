@@ -21,6 +21,8 @@ func Create(c *gin.Context) {
 	menuService.Type = r.Type
 	menuService.Icon = r.Icon
 	menuService.OrderNum = r.OrderNum
+	menuService.IsTab = r.IsTab
+	menuService.Status = r.Status
 	if _, errNo := menuService.Add(); errNo != nil {
 		handler.SendResponse(c, errNo, nil)
 		return

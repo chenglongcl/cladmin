@@ -32,7 +32,10 @@ func newSysUser(db *gorm.DB, opts ...gen.DOOption) sysUser {
 	_sysUser.Password = field.NewString(tableName, "password")
 	_sysUser.Email = field.NewString(tableName, "email")
 	_sysUser.Mobile = field.NewString(tableName, "mobile")
+	_sysUser.Gender = field.NewInt32(tableName, "gender")
+	_sysUser.DeptID = field.NewUint64(tableName, "dept_id")
 	_sysUser.Status = field.NewInt32(tableName, "status")
+	_sysUser.SuperAdmin = field.NewBool(tableName, "super_admin")
 	_sysUser.CreateUserID = field.NewUint64(tableName, "create_user_id")
 	_sysUser.CreatedAt = field.NewTime(tableName, "created_at")
 	_sysUser.UpdatedAt = field.NewTime(tableName, "updated_at")
@@ -54,6 +57,19 @@ func newSysUser(db *gorm.DB, opts ...gen.DOOption) sysUser {
 				RelationField: field.NewRelation("Roles.Menus.Roles", "cladminmodel.SysRole"),
 			},
 		},
+		Users: struct {
+			field.RelationField
+			Roles struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("Roles.Users", "cladminmodel.SysUser"),
+			Roles: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Roles.Users.Roles", "cladminmodel.SysRole"),
+			},
+		},
 	}
 
 	_sysUser.fillFieldMap()
@@ -70,7 +86,10 @@ type sysUser struct {
 	Password     field.String
 	Email        field.String
 	Mobile       field.String
+	Gender       field.Int32
+	DeptID       field.Uint64
 	Status       field.Int32
+	SuperAdmin   field.Bool
 	CreateUserID field.Uint64
 	CreatedAt    field.Time
 	UpdatedAt    field.Time
@@ -97,7 +116,10 @@ func (s *sysUser) updateTableName(table string) *sysUser {
 	s.Password = field.NewString(table, "password")
 	s.Email = field.NewString(table, "email")
 	s.Mobile = field.NewString(table, "mobile")
+	s.Gender = field.NewInt32(table, "gender")
+	s.DeptID = field.NewUint64(table, "dept_id")
 	s.Status = field.NewInt32(table, "status")
+	s.SuperAdmin = field.NewBool(table, "super_admin")
 	s.CreateUserID = field.NewUint64(table, "create_user_id")
 	s.CreatedAt = field.NewTime(table, "created_at")
 	s.UpdatedAt = field.NewTime(table, "updated_at")
@@ -124,13 +146,16 @@ func (s *sysUser) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (s *sysUser) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 11)
+	s.fieldMap = make(map[string]field.Expr, 14)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["username"] = s.Username
 	s.fieldMap["password"] = s.Password
 	s.fieldMap["email"] = s.Email
 	s.fieldMap["mobile"] = s.Mobile
+	s.fieldMap["gender"] = s.Gender
+	s.fieldMap["dept_id"] = s.DeptID
 	s.fieldMap["status"] = s.Status
+	s.fieldMap["super_admin"] = s.SuperAdmin
 	s.fieldMap["create_user_id"] = s.CreateUserID
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
@@ -154,6 +179,12 @@ type sysUserManyToManyRoles struct {
 	field.RelationField
 
 	Menus struct {
+		field.RelationField
+		Roles struct {
+			field.RelationField
+		}
+	}
+	Users struct {
 		field.RelationField
 		Roles struct {
 			field.RelationField
