@@ -1,18 +1,31 @@
 package cloudstorage
 
 import (
-	"cladmin/pkg/cloudstorage/client"
-	"cladmin/pkg/cloudstorage/iface"
+	"cladmin/pkg/cloudstorage/aliyunoss"
+	"github.com/chenglongcl/log"
 )
 
-func Init() {
-	client.InitAliClient()
+var cloudStorage *CloudStorage
+
+type CloudStorage struct {
+	AliYun *aliyunoss.OSS
 }
 
-func SelectClient(name string) iface.IClient {
-	switch name {
-	case "ali":
-		return client.DefaultAliClient()
+func InitCloudStorage() {
+	var (
+		err error
+	)
+	//
+	aliYun := &aliyunoss.OSS{}
+	if err = aliYun.NewClient(); err != nil {
+		log.Errorf(err, "阿里云OSS客户端初始化失败")
 	}
-	return nil
+	//
+	cloudStorage = &CloudStorage{
+		AliYun: aliYun,
+	}
+}
+
+func GetCloudStorage() *CloudStorage {
+	return cloudStorage
 }

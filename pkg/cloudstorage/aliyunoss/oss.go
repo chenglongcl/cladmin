@@ -1,4 +1,4 @@
-package client
+package aliyunoss
 
 import (
 	"cladmin/dal/cladmindb/cladminquery"
@@ -8,10 +8,14 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/base64"
+	"errors"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/chenglongcl/log"
-	"github.com/json-iterator/go"
+	jsoniter "github.com/json-iterator/go"
 	"hash"
+	"net/http"
+	"net/url"
+	"strings"
 	"time"
 )
 
@@ -29,72 +33,55 @@ type PolicyToken struct {
 	Directory   string `json:"dir"`
 }
 
-type OSSConfig struct {
+type Config struct {
 	AliYunAccessKeyID     string `json:"aliyunAccessKeyId"`
 	AliYunAccessKeySecret string `json:"aliyunAccessKeySecret"`
 	AliYunBucketName      string `json:"aliyunBucketName"`
 	AliYunEndPoint        string `json:"aliyunEndPoint"`
 }
 
-type Ali struct {
+type OSS struct {
 	Client *oss.Client
 }
 
-var ali *Ali
-
-func InitAliClient() {
+func (a *OSS) NewClient() error {
 	var (
 		client    *oss.Client
-		ossConfig OSSConfig
+		ossConfig Config
 	)
 	configModel, err := cladminquery.Q.WithContext(context.Background()).SysConfig.Where(
 		cladminquery.Q.SysConfig.ParamKey.Eq("CLOUD_STORAGE_ALI_CONFIG_KEY"),
 	).Take()
-	if err != nil || configModel == nil || configModel.ID == 0 {
-		log.Errorf(err, "获取阿里云OSS配置失败")
-		return
+	if err != nil {
+		return err
+	}
+	if configModel == nil || configModel.ID == 0 {
+		return errors.New("阿里云OSS配置不存在")
 	}
 	_ = jsoniter.UnmarshalFromString(configModel.ParamValue, &ossConfig)
-	client, err = oss.New(ossConfig.AliYunEndPoint, ossConfig.AliYunAccessKeyID, ossConfig.AliYunAccessKeySecret)
-	if err != nil {
-		log.Errorf(err, "初始化阿里云OSS客户端失败")
-		return
+	if client, err = oss.New(
+		ossConfig.AliYunEndPoint,
+		ossConfig.AliYunAccessKeyID,
+		ossConfig.AliYunAccessKeySecret,
+	); err != nil {
+		return err
 	}
-	ali = &Ali{
-		Client: client,
-	}
+	a.Client = client
+	return nil
 }
 
-func DefaultAliClient() *Ali {
-	return ali
+func (a *OSS) ResetClient() error {
+	if err := a.NewClient(); err != nil {
+		log.Errorf(err, "阿里云OSS客户端重置失败")
+		return err
+	}
+	return nil
 }
 
-func (o *Ali) ResetClient() bool {
-	var (
-		client    *oss.Client
-		ossConfig OSSConfig
-	)
-	configModel, err := cladminquery.Q.WithContext(context.Background()).SysConfig.Where(
-		cladminquery.Q.SysConfig.ParamKey.Eq("CLOUD_STORAGE_ALI_CONFIG_KEY"),
-	).Take()
-	if err != nil || configModel == nil || configModel.ID == 0 {
-		log.Errorf(err, "reset aliYunOSS client error")
-		return false
-	}
-	_ = jsoniter.UnmarshalFromString(configModel.ParamValue, &ossConfig)
-	client, err = oss.New(ossConfig.AliYunEndPoint, ossConfig.AliYunAccessKeyID, ossConfig.AliYunAccessKeySecret)
-	if err != nil {
-		log.Errorf(err, "reset aliYunOSS client error")
-		return false
-	}
-	o.Client = client
-	return true
-}
-
-func (o *Ali) WebUploadSign() (*PolicyToken, *errno.Errno) {
-	accessKeyId := o.Client.Config.AccessKeyID
-	accessKeySecret := o.Client.Config.AccessKeySecret
-	var ossConfig OSSConfig
+func (a *OSS) WebUploadSign() (*PolicyToken, *errno.Errno) {
+	accessKeyId := a.Client.Config.AccessKeyID
+	accessKeySecret := a.Client.Config.AccessKeySecret
+	var ossConfig Config
 	configModel, err := cladminquery.Q.WithContext(context.Background()).SysConfig.Where(
 		cladminquery.Q.SysConfig.ParamKey.Eq("CLOUD_STORAGE_ALI_CONFIG_KEY"),
 	).Take()
@@ -103,8 +90,8 @@ func (o *Ali) WebUploadSign() (*PolicyToken, *errno.Errno) {
 	}
 	_ = jsoniter.UnmarshalFromString(configModel.ParamValue, &ossConfig)
 	bucketName := ossConfig.AliYunBucketName
-	bucketInfo, _ := o.Client.GetBucketInfo(bucketName)
-	host := "http://" + bucketInfo.BucketInfo.Name + "." +
+	bucketInfo, _ := a.Client.GetBucketInfo(bucketName)
+	host := "https://" + bucketInfo.BucketInfo.Name + "." +
 		bucketInfo.BucketInfo.ExtranetEndpoint
 	expireTime := int64(30)
 	now := time.Now()
@@ -144,4 +131,32 @@ func (o *Ali) WebUploadSign() (*PolicyToken, *errno.Errno) {
 		Directory:   dir,
 	}
 	return pt, nil
+}
+
+func (a *OSS) IsObjectExist(objectURL string) (bool, error) {
+	u, err := url.Parse(objectURL)
+	if err != nil {
+		return false, err
+	}
+	bucketName := strings.Split(u.Hostname(), ".")[0]
+	objectName := strings.TrimLeft(u.Path, "/")
+	bucket, err := a.Client.Bucket(bucketName)
+	if err != nil {
+		return false, err
+	}
+	return bucket.IsObjectExist(objectName)
+}
+
+func (a *OSS) GetObjectDetailedMeta(objectURL string) (http.Header, error) {
+	u, err := url.Parse(objectURL)
+	if err != nil {
+		return nil, err
+	}
+	bucketName := strings.Split(u.Hostname(), ".")[0]
+	objectName := strings.TrimLeft(u.Path, "/")
+	bucket, err := a.Client.Bucket(bucketName)
+	if err != nil {
+		return nil, err
+	}
+	return bucket.GetObjectDetailedMeta(objectName)
 }

@@ -59,9 +59,9 @@ func Create(c *gin.Context) {
 	go func() {
 		switch configModel.ParamKey {
 		case "CLOUD_STORAGE_ALI_CONFIG_KEY":
-			_ = cloudstorage.SelectClient("ali").ResetClient()
+			_ = cloudstorage.GetCloudStorage().AliYun.ResetClient()
 		case "ALI_STS_CONFIG_KEY":
-			aliyun.ResetClient("sts")
+			_ = aliyun.GetAliYunOpenApiClients().STS.ResetClient()
 		}
 	}()
 	handler.SendResponse(c, nil, nil)

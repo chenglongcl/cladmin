@@ -54,19 +54,24 @@ func Update(c *gin.Context) {
 	updateData["status"] = r.Status
 	updateData["type"] = r.Type
 	updateData["remark"] = r.Remark
-	if errNo = configService.Edit([]gen.Condition{
+	if errNo = configService.Edit(append(func() []gen.Condition {
+		conditions := make([]gen.Condition, 0)
+		if !c.GetBool("superAdmin") {
+			cladminquery.Q.SysConfig.Locked.Is(false)
+		}
+		return conditions
+	}(), []gen.Condition{
 		cladminquery.Q.SysConfig.ID.Eq(r.ID),
-		cladminquery.Q.SysConfig.Locked.Is(false),
-	}, updateData); errNo != nil {
+	}...), updateData); errNo != nil {
 		handler.SendResponse(c, errNo, nil)
 		return
 	}
 	go func() {
 		switch r.ParamKey {
 		case "CLOUD_STORAGE_ALI_CONFIG_KEY":
-			_ = cloudstorage.SelectClient("ali").ResetClient()
+			_ = cloudstorage.GetCloudStorage().AliYun.ResetClient()
 		case "ALI_STS_CONFIG_KEY":
-			aliyun.ResetClient("sts")
+			_ = aliyun.GetAliYunOpenApiClients().STS.ResetClient()
 		}
 	}()
 	handler.SendResponse(c, nil, nil)

@@ -69,9 +69,9 @@ func program(state overseer.State) {
 	inject.Init()
 	err := inject.LoadCasbinPolicyData()
 	//init cloudStorage
-	cloudstorage.Init()
+	cloudstorage.InitCloudStorage()
 	//init aliYun client
-	aliyun.InitAilYunOpenApiClients()
+	aliyun.InitAliYunOpenApiClients()
 	if err != nil {
 		log.Fatal("Failure to load Casbin policy data:", err)
 	}

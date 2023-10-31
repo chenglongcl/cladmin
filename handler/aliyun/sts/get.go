@@ -4,6 +4,7 @@ import (
 	"cladmin/dal/cladmindb/cladminquery"
 	"cladmin/handler"
 	"cladmin/pkg/aliyun"
+	"cladmin/pkg/aliyun/sts"
 	"cladmin/pkg/errno"
 	"cladmin/service/configservice"
 	sts20150401 "github.com/alibabacloud-go/sts-20150401/v2/client"
@@ -18,7 +19,7 @@ import (
 func GetAssumeRole(c *gin.Context) {
 	var (
 		resp      GetTokenResponse
-		stsConfig aliyun.STSConfig
+		stsConfig sts.Config
 	)
 	configService := configservice.NewConfigService(c)
 	configModel, errNo := configService.Get([]field.Expr{
@@ -39,7 +40,7 @@ func GetAssumeRole(c *gin.Context) {
 	request.SetDurationSeconds(3600)
 	request.SetRoleArn(stsConfig.AliYunRoleArn)
 	request.SetRoleSessionName(stsConfig.AliYunRoleSessionName)
-	result, err := aliyun.GetAliSTSClient().AssumeRole(request)
+	result, err := aliyun.GetAliYunOpenApiClients().STS.Client.AssumeRole(request)
 	if err != nil || tea.Int32Value(result.StatusCode) != http.StatusOK {
 		handler.SendResponse(c, &errno.Errno{
 			Code:    29999,
