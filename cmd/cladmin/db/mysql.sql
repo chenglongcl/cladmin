@@ -522,7 +522,7 @@ COMMIT;
 DROP TABLE IF EXISTS `sys_user_token`;
 CREATE TABLE `sys_user_token` (
   `user_id` int(11) unsigned NOT NULL,
-  `token` varchar(255) NOT NULL COMMENT 'token',
+  `token` varchar(500) NOT NULL COMMENT 'token',
   `expire_time` datetime NOT NULL COMMENT '过期时间',
   `refresh_time` datetime NOT NULL COMMENT '更新时间',
   `created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间',

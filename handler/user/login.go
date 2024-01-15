@@ -34,6 +34,10 @@ func Login(c *gin.Context) {
 		handler.SendResponse(c, errNo, nil)
 		return
 	}
+	if userModel == nil || userModel.ID == 0 {
+		handler.SendResponse(c, errno.ErrUserNotFound, nil)
+		return
+	}
 	//Compare the login password with user password
 	if err := auth.Compare(userModel.Password, r.Password); err != nil {
 		handler.SendResponse(c, errno.ErrPasswordIncorrect, nil)

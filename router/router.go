@@ -109,6 +109,11 @@ func Load(g *gin.Engine, mw ...gin.HandlerFunc) *gin.Engine {
 		apiV1.GET("/dept/list", dept.List)
 		apiV1.DELETE("/dept/delete", dept.Delete)
 	}
+	//external
+	externalRouter := g.Group("/external")
+	{
+		externalRouter.GET("/dictType/all", dict.AllDictType)
+	}
 	//multipartUpload
 	multipartUploadRouter := g.Group("/multipartUpload")
 	{
